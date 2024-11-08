@@ -47,7 +47,13 @@ namespace Summarizer
 
         private void Summarizer_Load(object sender, EventArgs e)
         {
+            Text = $"Summarizer (v{Program.Version})";
+        }
 
+        private void checkBoxAlwaysTop_CheckedChanged(object sender, EventArgs e)
+        {
+            TopMost = checkBoxAlwaysTop.Checked;
+            Update();
         }
 
         /// <summary>
@@ -92,7 +98,8 @@ namespace Summarizer
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
-            var splitTexts = textBoxInput.Text.Split(Environment.NewLine);
+            string[] seperators = [ Environment.NewLine, "/" ];
+            var splitTexts = textBoxInput.Text.Split(seperators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
             if (splitTexts.Length <= 0)
                 return string.Empty;
 
@@ -104,11 +111,11 @@ namespace Summarizer
                 if (string.IsNullOrEmpty(splitText))
                     continue;
 
-                var currentText = splitText.Trim();
+                var currentText = splitText;
 
                 // 휴대전화번호인 텍스트는 '-' 기호로 구분
-                if (IsCellPhoneNumber(currentText))
-                    currentText = StandardizeCellPhoneNumber(currentText);
+                if (IsCellPhoneNumber(splitText))
+                    currentText = StandardizeCellPhoneNumber(splitText);
                 //{
                 //    var phoneNumber = currentText;
                 //    currentText = $"010-{currentText.Substring(3, 4)}-{currentText.Substring(7, 4)}";

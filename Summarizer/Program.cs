@@ -2,6 +2,9 @@ namespace Summarizer
 {
     internal static class Program
     {
+        internal const string Version = "1.0.1";
+
+
         /// <summary>
         ///  The main entry point for the application.
         /// </summary>

@@ -35,6 +35,7 @@
             labelOutput = new Label();
             buttonClear = new Button();
             buttonCopyOutput = new Button();
+            checkBoxAlwaysTop = new CheckBox();
             SuspendLayout();
             // 
             // buttonToConvert
@@ -101,11 +102,23 @@
             buttonCopyOutput.UseVisualStyleBackColor = true;
             buttonCopyOutput.Click += buttonCopyOutput_Click;
             // 
+            // checkBoxAlwaysTop
+            // 
+            checkBoxAlwaysTop.AutoSize = true;
+            checkBoxAlwaysTop.Location = new Point(345, 43);
+            checkBoxAlwaysTop.Name = "checkBoxAlwaysTop";
+            checkBoxAlwaysTop.Size = new Size(122, 19);
+            checkBoxAlwaysTop.TabIndex = 7;
+            checkBoxAlwaysTop.Text = "항상 맨 위로 고정";
+            checkBoxAlwaysTop.UseVisualStyleBackColor = true;
+            checkBoxAlwaysTop.CheckedChanged += checkBoxAlwaysTop_CheckedChanged;
+            // 
             // Summarizer
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(810, 419);
+            Controls.Add(checkBoxAlwaysTop);
             Controls.Add(buttonCopyOutput);
             Controls.Add(buttonClear);
             Controls.Add(labelOutput);
@@ -130,5 +143,6 @@
         private Label labelOutput;
         private Button buttonClear;
         private Button buttonCopyOutput;
+        private CheckBox checkBoxAlwaysTop;
     }
 }
