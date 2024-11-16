@@ -15,21 +15,20 @@ namespace Summarizer
             if (string.IsNullOrEmpty(phoneNumberText))
                 return string.Empty;
 
+            int numberCount = 0;
             StringBuilder builder = new();
-            for (int index = 0, count = 0; index < phoneNumberText.Length; ++index)
+            for (int index = 0; index < phoneNumberText.Length; ++index)
             {
-                var digit = phoneNumberText[index];
-                if (count is 3 or 8)
+                var character = phoneNumberText[index];
+                if (numberCount is 3 or 8)
                 {
                     builder.Append('-');
-                    ++count;
+                    ++numberCount;
                 }
 
-                if ((digit >= '0') && (digit <= '9'))
-                {
-                    builder.Append(digit);
-                    ++count;
-                }
+                builder.Append(character);
+                if ((character >= '0') && (character <= '9'))
+                    ++numberCount;
             }
 
             return builder.ToString();
