@@ -92,19 +92,18 @@ namespace Summarizer
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private string ConvertText(string text)
+        private static string ConvertText(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
-            string[] seperators = [ Environment.NewLine, "/" ];
-            var splitTexts = textBoxInput.Text.Split(seperators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            if (splitTexts.Length <= 0)
+            var splitTexts = SplitTextContents(text);
+            if (splitTexts.Count <= 0)
                 return string.Empty;
 
             StringBuilder builder = new();
             builder.Append("[ ");
-            for (int index = 0; index < splitTexts.Length; ++index)
+            for (int index = 0; index < splitTexts.Count; ++index)
             {
                 var splitText = splitTexts[index];
                 if (string.IsNullOrEmpty(splitText))
@@ -122,12 +121,43 @@ namespace Summarizer
 
                 builder.Append(currentText);
 
-                if (index < (splitTexts.Length - 1))
+                if (index < (splitTexts.Count - 1))
                     builder.Append(" / ");
             }
             builder.Append(" ]");
 
             return builder.ToString();
+        }
+
+        /// <summary>
+        /// 변환할 텍스트의 구분 처리
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        private static List<string> SplitTextContents(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return [];
+
+            List<string> resultTexts = [];
+
+            // "" 기호로 한 줄에 들어가야 할 텍스트를 먼저 구별한다.
+            var splitTextInLines = text.Split(['\'', '\"'], StringSplitOptions.TrimEntries);
+            for (int index = 0; index < splitTextInLines.Length; ++index)
+            {
+                string textLine = splitTextInLines[index];
+                if (string.IsNullOrEmpty(textLine))
+                    continue;
+
+                // 홀수 인덱스의 요소들은 ' 또는 " 기호에 둘러싸인 문자열로 취급한다.
+                if (index % 2 > 0)
+                    textLine = textLine.Replace(Environment.NewLine, " ");
+
+                var splitTexts = textLine.Split([Environment.NewLine, "/"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                resultTexts.AddRange(splitTexts);
+            }
+
+            return resultTexts;
         }
     }
 }

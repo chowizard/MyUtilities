@@ -2,7 +2,7 @@ namespace Summarizer
 {
     internal static class Program
     {
-        internal const string Version = "1.0.2";
+        internal const string Version = "1.0.3";
 
 
         /// <summary>
