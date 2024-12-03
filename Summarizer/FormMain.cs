@@ -153,7 +153,8 @@ namespace Summarizer
                 if (index % 2 > 0)
                     textLine = textLine.Replace(Environment.NewLine, " ");
 
-                var splitTexts = textLine.Split([Environment.NewLine, "/"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                // '/' 기호를 띄어쓰기 없이 붙여쓴 것은 날짜 등을 표기하기 위한 것으로 간주하고, 하나의 문장으로 취급한다.
+                var splitTexts = textLine.Split([Environment.NewLine, " / "], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 resultTexts.AddRange(splitTexts);
             }
 
