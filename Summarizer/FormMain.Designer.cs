@@ -51,16 +51,20 @@
             // textBoxInput
             // 
             textBoxInput.Location = new Point(33, 34);
+            textBoxInput.MaxLength = 65535;
             textBoxInput.Multiline = true;
             textBoxInput.Name = "textBoxInput";
+            textBoxInput.ScrollBars = ScrollBars.Vertical;
             textBoxInput.Size = new Size(279, 359);
             textBoxInput.TabIndex = 1;
             // 
             // textBoxOutput
             // 
             textBoxOutput.Location = new Point(498, 34);
+            textBoxOutput.MaxLength = 65535;
             textBoxOutput.Multiline = true;
             textBoxOutput.Name = "textBoxOutput";
+            textBoxOutput.ScrollBars = ScrollBars.Vertical;
             textBoxOutput.Size = new Size(281, 359);
             textBoxOutput.TabIndex = 2;
             // 
