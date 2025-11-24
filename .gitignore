@@ -2,3 +2,5 @@
 /Summarizer/.vs
 /Summarizer/bin
 /Summarizer/*.user
+/Summarizer/.idea
+*.code-workspace
