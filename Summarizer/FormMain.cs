@@ -5,14 +5,41 @@ namespace Summarizer
 {
     public partial class SummarizerForm : Form
     {
+        /// <summary>
+        /// 휴대전화번호를 식별하는 정규표현식 (01000000000 또는 010-0000-0000 방식)
+        /// </summary>
+        /// <returns></returns>
         //[GeneratedRegex("\\b010\\d{8}\\b")]
         [GeneratedRegex("\\b010.*?\\d{4}.*?\\d{4}\\b")]
         private static partial Regex PhoneNumberRegex();
+
+        /// <summary>
+        /// 카카오톡 메시지의 시간값을 식별하는 정규표현식
+        /// </summary>
+        /// <returns></returns>
+        [GeneratedRegex("오(전|후)\\d{2}:\\d{2}(\r?\n)")]
+        private static partial Regex KakaoTalkMessageTimeRegex();
+
+        /// <summary>
+        /// 카카오톡 메시지의 스태프 메시지 식별 정규표현식
+        /// </summary>
+        /// <returns></returns>
+        [GeneratedRegex("님이 보냄 보낸 메시지 가이드")]
+        private static partial Regex KakaoTalkStaffMessageRegex();
 
 
         public SummarizerForm()
         {
             InitializeComponent();
+
+            #region TEST
+            var exampleText = "오후08:32\r\naaaaabbbbb";
+            var match = KakaoTalkMessageTimeRegex().Match(exampleText);
+            if (match.Success)
+            {
+
+            }
+            #endregion TEST
         }
 
         private void Summarizer_Load(object sender, EventArgs e)
@@ -109,6 +136,67 @@ namespace Summarizer
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
 
+            var matches = KakaoTalkMessageTimeRegex().Matches(text);
+            if (matches.Count > 0)
+            {
+                // KakoTalk 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 스태프의 메시지로 구분하여 변환 처리
+                List<string> convertedTexts = new(matches.Count);
+                for (int index = 0; index < matches.Count; ++index)
+                {
+                    var match = matches[index];
+
+                    int matchStartIndex = match.Index;
+                    int matchEndIndex = ((index + 1) >= matches.Count) ? text.Length : matches[index + 1].Index;
+                    int copyCount = matchEndIndex - matchStartIndex;
+                    char[] paragraphBuffer = new char[matchEndIndex - matchStartIndex];
+                    text.CopyTo(match.Index, paragraphBuffer, 0, copyCount);
+                    string paragraph = new(paragraphBuffer);
+
+                    var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                    if (splited.Length < 3)
+                        continue;
+
+                    string currentConverted;
+                    var senderText = splited[1];
+                    if (KakaoTalkStaffMessageRegex().IsMatch(senderText))
+                    {
+                        var targetText = string.Join(Environment.NewLine, splited, 2, splited.Length - 2);
+                        currentConverted = ConvertStaffText(targetText);
+                    }
+                    else
+                    {
+                        // '프로필 사진' 텍스트가 있는 경우, 그 다음 줄이 보낸 사람의 이름이다.
+                        int startIndex = senderText.Contains("프로필 사진") ? 3 : 2;
+                        var targetText = string.Join(Environment.NewLine, splited, startIndex, splited.Length - startIndex);
+                        currentConverted = ConvertCustomerText(targetText);
+                    }
+
+                    convertedTexts.Add(currentConverted);
+                }
+
+                var finalText = string.Join(" / ", convertedTexts);
+                return finalText;
+            }
+            else
+            {
+                // KakoTalk 메시지 복사 방식이 아닌 것으로 판정되면, 전체 텍스트를 손님의 메시지로 간주하고 변환 처리
+                return ConvertCustomerText(text);
+            }
+        }
+
+        /// <summary>
+        /// 손님의 메시지 형식으로 변환한다.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 메시지의 전체를 '['']' 기호로 감싼다.
+        /// </remarks>
+        private static string ConvertCustomerText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
             var splitTexts = SplitTextContents(text);
             if (splitTexts.Count <= 0)
                 return string.Empty;
@@ -137,6 +225,49 @@ namespace Summarizer
                     builder.Append(" / ");
             }
             builder.Append(" ]");
+
+            return builder.ToString();
+        }
+
+        /// <summary>
+        /// 스태프의 메시지 저장 형식으로 변환한다.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 메시지를 대괄호 기호([])로 감쌀 필요 없음. + 사전에 지정되어 있는 문자 추가
+        /// </remarks>
+        private static string ConvertStaffText(string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return string.Empty;
+
+            var splitTexts = SplitTextContents(text);
+            if (splitTexts.Count <= 0)
+                return string.Empty;
+
+            StringBuilder builder = new();
+            for (int index = 0; index < splitTexts.Count; ++index)
+            {
+                var splitText = splitTexts[index];
+                if (string.IsNullOrEmpty(splitText))
+                    continue;
+
+                var currentText = splitText;
+
+                // 휴대전화번호인 텍스트는 '-' 기호로 구분
+                if (IsCellPhoneNumber(splitText))
+                    currentText = StandardizeCellPhoneNumber(splitText);
+                //{
+                //    var phoneNumber = currentText;
+                //    currentText = $"010-{currentText.Substring(3, 4)}-{currentText.Substring(7, 4)}";
+                //}
+
+                builder.Append(currentText);
+
+                if (index < (splitTexts.Count - 1))
+                    builder.Append(" / ");
+            }
 
             return builder.ToString();
         }
