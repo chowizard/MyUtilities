@@ -5,47 +5,6 @@ namespace Summarizer
 {
     public partial class SummarizerForm : Form
     {
-        private static bool IsCellPhoneNumber(string text)
-        {
-            return !string.IsNullOrEmpty(text) && PhoneNumberRegex().IsMatch(text);
-        }
-
-        private static string StandardizeCellPhoneNumber(string phoneNumberText)
-        {
-            if (string.IsNullOrEmpty(phoneNumberText))
-                return string.Empty;
-
-            int numberCount = 0;
-            StringBuilder builder = new();
-            for (int index = 0; index < phoneNumberText.Length; ++index)
-            {
-                var character = phoneNumberText[index];
-                if (numberCount is 3 or 8)
-                {
-                    builder.Append('-');
-                    ++numberCount;
-                }
-
-                bool isPhoneNumberText = (numberCount > 0) && (numberCount <= 11);
-                if (isPhoneNumberText)
-                {
-                    // 전화번호의 '-' 구분자만 중복으로 추가되지 않게 한다.
-                    if (character is not '-')
-                        builder.Append(character);
-                }
-                else
-                {
-                    // 그 외의 경우에는 '-' 구분자도 원본 메시지에 포함되어 있는 문자로 간주한다.
-                    builder.Append(character);
-                }
-
-                if ((character >= '0') && (character <= '9'))
-                    ++numberCount;
-            }
-
-            return builder.ToString();
-        }
-
         //[GeneratedRegex("\\b010\\d{8}\\b")]
         [GeneratedRegex("\\b010.*?\\d{4}.*?\\d{4}\\b")]
         private static partial Regex PhoneNumberRegex();
@@ -97,6 +56,47 @@ namespace Summarizer
         private void buttonCopyOutput_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(textBoxOutput.Text);
+        }
+
+        private static bool IsCellPhoneNumber(string text)
+        {
+            return !string.IsNullOrEmpty(text) && PhoneNumberRegex().IsMatch(text);
+        }
+
+        private static string StandardizeCellPhoneNumber(string phoneNumberText)
+        {
+            if (string.IsNullOrEmpty(phoneNumberText))
+                return string.Empty;
+
+            int numberCount = 0;
+            StringBuilder builder = new();
+            for (int index = 0; index < phoneNumberText.Length; ++index)
+            {
+                var character = phoneNumberText[index];
+                if (numberCount is 3 or 8)
+                {
+                    builder.Append('-');
+                    ++numberCount;
+                }
+
+                bool isPhoneNumberText = (numberCount > 0) && (numberCount <= 11);
+                if (isPhoneNumberText)
+                {
+                    // 전화번호의 '-' 구분자만 중복으로 추가되지 않게 한다.
+                    if (character is not '-')
+                        builder.Append(character);
+                }
+                else
+                {
+                    // 그 외의 경우에는 '-' 구분자도 원본 메시지에 포함되어 있는 문자로 간주한다.
+                    builder.Append(character);
+                }
+
+                if ((character >= '0') && (character <= '9'))
+                    ++numberCount;
+            }
+
+            return builder.ToString();
         }
 
         /// <summary>
