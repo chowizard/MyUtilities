@@ -10,6 +10,11 @@
     <ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
     <FileVersion>1.0.4</FileVersion>
     <AssemblyVersion>1.0.4</AssemblyVersion>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="icon.ico" />
+  </ItemGroup>
 
 </Project>
