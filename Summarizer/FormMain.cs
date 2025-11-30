@@ -26,8 +26,19 @@ namespace Summarizer
                     ++numberCount;
                 }
 
-                if (character is not '-')
+                bool isPhoneNumberText = (numberCount > 0) && (numberCount <= 11);
+                if (isPhoneNumberText)
+                {
+                    // 전화번호의 '-' 구분자만 중복으로 추가되지 않게 한다.
+                    if (character is not '-')
+                        builder.Append(character);
+                }
+                else
+                {
+                    // 그 외의 경우에는 '-' 구분자도 원본 메시지에 포함되어 있는 문자로 간주한다.
                     builder.Append(character);
+                }
+
                 if ((character >= '0') && (character <= '9'))
                     ++numberCount;
             }
