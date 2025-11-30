@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace Summarizer
 {
-    public partial class Summarizer : Form
+    public partial class SummarizerForm : Form
     {
         private static bool IsCellPhoneNumber(string text)
         {
@@ -39,7 +39,7 @@ namespace Summarizer
         private static partial Regex PhoneNumberRegex();
 
 
-        public Summarizer()
+        public SummarizerForm()
         {
             InitializeComponent();
         }

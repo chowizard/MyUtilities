@@ -1,6 +1,6 @@
 ﻿namespace Summarizer
 {
-    partial class Summarizer
+    partial class SummarizerForm
     {
         /// <summary>
         ///  Required designer variable.
@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SummarizerForm));
             buttonToConvert = new Button();
             textBoxInput = new TextBox();
             textBoxOutput = new TextBox();
@@ -117,7 +118,7 @@
             checkBoxAlwaysTop.UseVisualStyleBackColor = true;
             checkBoxAlwaysTop.CheckedChanged += checkBoxAlwaysTop_CheckedChanged;
             // 
-            // Summarizer
+            // SummarizerForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
@@ -130,8 +131,9 @@
             Controls.Add(textBoxOutput);
             Controls.Add(textBoxInput);
             Controls.Add(buttonToConvert);
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Margin = new Padding(2);
-            Name = "Summarizer";
+            Name = "SummarizerForm";
             Text = "Summarizer";
             Load += Summarizer_Load;
             ResumeLayout(false);
