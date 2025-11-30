@@ -95,7 +95,7 @@
             buttonClear.TabIndex = 5;
             buttonClear.Text = "비우기";
             buttonClear.UseVisualStyleBackColor = true;
-            buttonClear.Click += buttonClear_Click;
+            buttonClear.Click += ButtonClear_Click;
             // 
             // buttonCopyOutput
             // 
@@ -105,7 +105,7 @@
             buttonCopyOutput.TabIndex = 6;
             buttonCopyOutput.Text = "복사하기";
             buttonCopyOutput.UseVisualStyleBackColor = true;
-            buttonCopyOutput.Click += buttonCopyOutput_Click;
+            buttonCopyOutput.Click += ButtonCopyOutput_Click;
             // 
             // checkBoxAlwaysTop
             // 
@@ -116,7 +116,7 @@
             checkBoxAlwaysTop.TabIndex = 7;
             checkBoxAlwaysTop.Text = "항상 맨 위로 고정";
             checkBoxAlwaysTop.UseVisualStyleBackColor = true;
-            checkBoxAlwaysTop.CheckedChanged += checkBoxAlwaysTop_CheckedChanged;
+            checkBoxAlwaysTop.CheckedChanged += CheckBoxAlwaysTop_CheckedChanged;
             // 
             // SummarizerForm
             // 

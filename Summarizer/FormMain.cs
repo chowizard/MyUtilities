@@ -20,7 +20,7 @@ namespace Summarizer
             Text = $"Summarizer (v{Program.Version})";
         }
 
-        private void checkBoxAlwaysTop_CheckedChanged(object sender, EventArgs e)
+        private void CheckBoxAlwaysTop_CheckedChanged(object sender, EventArgs e)
         {
             TopMost = checkBoxAlwaysTop.Checked;
             Update();
@@ -42,7 +42,7 @@ namespace Summarizer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonClear_Click(object sender, EventArgs e)
+        private void ButtonClear_Click(object sender, EventArgs e)
         {
             textBoxInput.Text = string.Empty;
             textBoxOutput.Text = string.Empty;
@@ -53,7 +53,7 @@ namespace Summarizer
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void buttonCopyOutput_Click(object sender, EventArgs e)
+        private void ButtonCopyOutput_Click(object sender, EventArgs e)
         {
             Clipboard.SetText(textBoxOutput.Text);
         }
