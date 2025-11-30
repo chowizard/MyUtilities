@@ -26,7 +26,8 @@ namespace Summarizer
                     ++numberCount;
                 }
 
-                builder.Append(character);
+                if (character is not '-')
+                    builder.Append(character);
                 if ((character >= '0') && (character <= '9'))
                     ++numberCount;
             }
