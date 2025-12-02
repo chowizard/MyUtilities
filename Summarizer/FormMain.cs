@@ -6,31 +6,61 @@ namespace Summarizer
     public partial class SummarizerForm : Form
     {
         /// <summary>
+        /// 사용자 이름
+        /// </summary>
+        public static string staffName = string.Empty;
+
+        /// <summary>
+        /// 예약 확인 메시지
+        /// </summary>
+        public static string reservationConfirmMessage = string.Empty;
+
+
+        /// <summary>
         /// 휴대전화번호를 식별하는 정규표현식 (01000000000 또는 010-0000-0000 방식)
         /// </summary>
         /// <returns></returns>
         //[GeneratedRegex("\\b010\\d{8}\\b")]
-        [GeneratedRegex("\\b010.*?\\d{4}.*?\\d{4}\\b")]
+        [GeneratedRegex(@"\b010.*?\d{4}.*?\d{4}\b")]
         private static partial Regex PhoneNumberRegex();
 
         /// <summary>
         /// 카카오톡 메시지의 시간값을 식별하는 정규표현식
         /// </summary>
         /// <returns></returns>
-        [GeneratedRegex("오(전|후)\\d{2}:\\d{2}(\r?\n)")]
+        [GeneratedRegex(@"오(전|후)\d{2}:\d{2}(\r?\n)")]
         private static partial Regex KakaoTalkMessageTimeRegex();
 
         /// <summary>
         /// 카카오톡 메시지의 스태프 메시지 식별 정규표현식
         /// </summary>
         /// <returns></returns>
-        [GeneratedRegex("님이 보냄 보낸 메시지 가이드")]
+        [GeneratedRegex(@"님이 보냄 보낸 메시지 가이드")]
         private static partial Regex KakaoTalkStaffMessageRegex();
+
+        /// <summary>
+        /// 내원 예약 메시지의 식별 정규표현식
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// 예를 들어, 다음과 같은 문장들을 모두 잡아낼 수 있다.
+        /// ex)
+        /// 11월 21일 금요일 2시 30분 aaa원장님 상담 예약
+        /// 11월 21일금 2시 30분 bbb원장님 상담예약
+        /// 11.21일금요일 2시 3분 ccc 원장 상담예약
+        /// 11-21일금요일 2시 30분 ddd원장님 상담
+        /// 1월 2일 금요일 12시 30분 eee원장님 상담예약
+        /// </remarks>
+        [GeneratedRegex(@"(\d+?[년.-])[ ]?(\d?\d?[월.-]?)[ ]?(\d?\d?일?)[ ]?(일|월|화|수|목|금|토)(요일)?[ ]?\d?\d?시[ ]?\d?\d?분[ ]?...원장님?[ ]?상담[ ]?(예약)?")]
+        private static partial Regex ReservationRegex();
 
 
         public SummarizerForm()
         {
             InitializeComponent();
+
+            staffName = AppSettings.Default["StaffName"].ToString();
+            reservationConfirmMessage = AppSettings.Default["ReservationConfirmMessage"].ToString();
 
             #region TEST
             var exampleText = "오후08:32\r\naaaaabbbbb";
@@ -214,10 +244,6 @@ namespace Summarizer
                 // 휴대전화번호인 텍스트는 '-' 기호로 구분
                 if (IsCellPhoneNumber(splitText))
                     currentText = StandardizeCellPhoneNumber(splitText);
-                //{
-                //    var phoneNumber = currentText;
-                //    currentText = $"010-{currentText.Substring(3, 4)}-{currentText.Substring(7, 4)}";
-                //}
 
                 builder.Append(currentText);
 
@@ -258,15 +284,19 @@ namespace Summarizer
                 // 휴대전화번호인 텍스트는 '-' 기호로 구분
                 if (IsCellPhoneNumber(splitText))
                     currentText = StandardizeCellPhoneNumber(splitText);
-                //{
-                //    var phoneNumber = currentText;
-                //    currentText = $"010-{currentText.Substring(3, 4)}-{currentText.Substring(7, 4)}";
-                //}
 
                 builder.Append(currentText);
 
                 if (index < (splitTexts.Count - 1))
                     builder.Append(" / ");
+            }
+
+            // 마지막 문장이 예약 신청 문자로 판단한 경우, 사전에 약속한 텍스트를 추가한다.
+            var lastMessage = splitTexts[^1];
+            if (ReservationRegex().IsMatch(lastMessage))
+            {
+                var extraMessage = $" / {reservationConfirmMessage} // {staffName}";
+                builder.Append(extraMessage);
             }
 
             return builder.ToString();
