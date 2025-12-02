@@ -8,12 +8,12 @@ namespace Summarizer
         /// <summary>
         /// 사용자 이름
         /// </summary>
-        public static string staffName = string.Empty;
+        private static string staffName = string.Empty;
 
         /// <summary>
         /// 예약 확인 메시지
         /// </summary>
-        public static string reservationConfirmMessage = string.Empty;
+        private static string reservationConfirmMessage = string.Empty;
 
 
         /// <summary>
@@ -47,29 +47,27 @@ namespace Summarizer
         /// ex)
         /// 11월 21일 금요일 2시 30분 aaa원장님 상담 예약
         /// 11월 21일금 2시 30분 bbb원장님 상담예약
-        /// 11.21일금요일 2시 3분 ccc 원장 상담예약
-        /// 11-21일금요일 2시 30분 ddd원장님 상담
+        /// 11.21 금요일 2시 3분 cc 원장 상담예약
+        /// 11-21일금요일 2시 30분 dddd원장님 상담
         /// 1월 2일 금요일 12시 30분 eee원장님 상담예약
         /// </remarks>
-        [GeneratedRegex(@"(\d+?[년.-])[ ]?(\d?\d?[월.-]?)[ ]?(\d?\d?일?)[ ]?(일|월|화|수|목|금|토)(요일)?[ ]?\d?\d?시[ ]?\d?\d?분[ ]?...원장님?[ ]?상담[ ]?(예약)?")]
+        [GeneratedRegex(@"(\d+?([/.-]|년))?[ ]?(\d?\d?([/.-]|월))[ ]?(\d?\d?일?)[ ]?(일|월|화|수|목|금|토)(요일)?[ ]?\d?\d?시[ ]?\d?\d?분[ ]?(.+?[ ]?원장님?)[ ]?상담[ ]?(예약)?")]
         private static partial Regex ReservationRegex();
 
 
         public SummarizerForm()
         {
             InitializeComponent();
+            LoadAppSettings();
+        }
 
-            staffName = AppSettings.Default["StaffName"].ToString();
-            reservationConfirmMessage = AppSettings.Default["ReservationConfirmMessage"].ToString();
+        private void LoadAppSettings()
+        {
+            if (AppSettings.Default == null)
+                return;
 
-            #region TEST
-            var exampleText = "오후08:32\r\naaaaabbbbb";
-            var match = KakaoTalkMessageTimeRegex().Match(exampleText);
-            if (match.Success)
-            {
-
-            }
-            #endregion TEST
+            staffName = AppSettings.Default["StaffName"]?.ToString() ?? string.Empty;
+            reservationConfirmMessage = AppSettings.Default["ReservationConfirmMessage"]?.ToString() ?? string.Empty;
         }
 
         private void Summarizer_Load(object sender, EventArgs e)
