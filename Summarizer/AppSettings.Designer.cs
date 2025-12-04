@@ -40,5 +40,24 @@ namespace Summarizer {
                 return ((string)(this["ReservationConfirmMessage"]));
             }
         }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
+  <string>상담받을 분의 성함 / 연락처 - </string>
+  <string>생년월일 - </string>
+  <string>상담부위 - </string>
+  <string>첫수술or 재수술 (재수술일경우 마지막 수술시기 ) - </string>
+  <string>상담 희망 날짜와 시간대 - </string>
+  <string>상담 원하는 원장님 - </string>
+  <string>저희 병원 알게되신 경로 - </string>
+  <string>소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - </string>
+</ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection SliceMessages {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["SliceMessages"]));
+            }
+        }
     }
 }

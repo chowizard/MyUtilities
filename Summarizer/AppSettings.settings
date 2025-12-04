@@ -8,5 +8,18 @@
     <Setting Name="ReservationConfirmMessage" Type="System.String" Scope="Application">
       <Value Profile="(Default)">채널로 예약문자 전송</Value>
     </Setting>
+    <Setting Name="SliceMessages" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+      <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
+&lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
+  &lt;string&gt;상담받을 분의 성함 / 연락처 - &lt;/string&gt;
+  &lt;string&gt;생년월일 - &lt;/string&gt;
+  &lt;string&gt;상담부위 - &lt;/string&gt;
+  &lt;string&gt;첫수술or 재수술 (재수술일경우 마지막 수술시기 ) - &lt;/string&gt;
+  &lt;string&gt;상담 희망 날짜와 시간대 - &lt;/string&gt;
+  &lt;string&gt;상담 원하는 원장님 - &lt;/string&gt;
+  &lt;string&gt;저희 병원 알게되신 경로 - &lt;/string&gt;
+  &lt;string&gt;소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - &lt;/string&gt;
+&lt;/ArrayOfString&gt;</Value>
+    </Setting>
   </Settings>
 </SettingsFile>

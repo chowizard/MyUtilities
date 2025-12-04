@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Summarizer
@@ -14,6 +16,11 @@ namespace Summarizer
         /// 예약 확인 메시지
         /// </summary>
         private static string reservationConfirmMessage = string.Empty;
+
+        /// <summary>
+        /// 생략
+        /// </summary>
+        private static string[] sliceMessages = null;
 
 
         /// <summary>
@@ -66,8 +73,13 @@ namespace Summarizer
             if (AppSettings.Default == null)
                 return;
 
-            staffName = AppSettings.Default["StaffName"]?.ToString() ?? string.Empty;
-            reservationConfirmMessage = AppSettings.Default["ReservationConfirmMessage"]?.ToString() ?? string.Empty;
+            staffName = AppSettings.Default.StaffName;
+            reservationConfirmMessage = AppSettings.Default.ReservationConfirmMessage;
+            if ((AppSettings.Default.SliceMessages != null) && (AppSettings.Default.SliceMessages.Count > 0))
+            {
+                sliceMessages = new string[AppSettings.Default.SliceMessages.Count];
+                AppSettings.Default.SliceMessages.CopyTo(sliceMessages, 0);
+            }
         }
 
         private void Summarizer_Load(object sender, EventArgs e)
@@ -169,12 +181,12 @@ namespace Summarizer
             {
                 // KakoTalk 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 스태프의 메시지로 구분하여 변환 처리
                 List<string> convertedTexts = new(matches.Count);
-                for (int index = 0; index < matches.Count; ++index)
+                for (int matchIndex = 0; matchIndex < matches.Count; ++matchIndex)
                 {
-                    var match = matches[index];
+                    var match = matches[matchIndex];
 
                     int matchStartIndex = match.Index;
-                    int matchEndIndex = ((index + 1) >= matches.Count) ? text.Length : matches[index + 1].Index;
+                    int matchEndIndex = ((matchIndex + 1) >= matches.Count) ? text.Length : matches[matchIndex + 1].Index;
                     int copyCount = matchEndIndex - matchStartIndex;
                     char[] paragraphBuffer = new char[matchEndIndex - matchStartIndex];
                     text.CopyTo(match.Index, paragraphBuffer, 0, copyCount);
@@ -229,11 +241,13 @@ namespace Summarizer
             if (splitTexts.Count <= 0)
                 return string.Empty;
 
+            var summarizedLines = SummarizeTextContents(splitTexts);
+
             StringBuilder builder = new();
             builder.Append("[ ");
-            for (int index = 0; index < splitTexts.Count; ++index)
+            for (int index = 0; index < summarizedLines.Count; ++index)
             {
-                var splitText = splitTexts[index];
+                var splitText = summarizedLines[index];
                 if (string.IsNullOrEmpty(splitText))
                     continue;
 
@@ -245,7 +259,7 @@ namespace Summarizer
 
                 builder.Append(currentText);
 
-                if (index < (splitTexts.Count - 1))
+                if (index < (summarizedLines.Count - 1))
                     builder.Append(" / ");
             }
             builder.Append(" ]");
@@ -325,11 +339,53 @@ namespace Summarizer
                     textLine = textLine.Replace(Environment.NewLine, " ");
 
                 // '/' 기호를 띄어쓰기 없이 붙여쓴 것은 날짜 등을 표기하기 위한 것으로 간주하고, 하나의 문장으로 취급한다.
-                var splitTexts = textLine.Split([Environment.NewLine, " / "], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                var splitTexts = textLine.Split(
+                    [Environment.NewLine], //[Environment.NewLine, " / "],
+                    StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 resultTexts.AddRange(splitTexts);
             }
 
             return resultTexts;
+        }
+
+        /// <summary>
+        /// 주어진 텍스트 목록의 각 텍스트들을 축약 처리한다.
+        /// </summary>
+        /// <param name="texts">줄 단위로 분할한 텍스트들의 목록</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 텍스트의 축약은 앱 설정 파일에서 설정한 목록에 일치하는 문자열을 잘라내는 방식으로 수행한다.
+        /// </remarks>
+        private static List<string> SummarizeTextContents(ICollection<string> texts)
+        {
+            List<string> summarizedTexts = new(texts.Count);
+            StringBuilder stringBuilder = new();
+            foreach (var text in texts)
+            {
+                stringBuilder.Clear();
+                stringBuilder.Append(text);
+
+                if (sliceMessages != null)
+                {
+                    int index = Array.FindIndex(sliceMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
+                    if (index >= 0)
+                        stringBuilder.Replace(sliceMessages[index], string.Empty);
+                }
+
+                summarizedTexts.Add(stringBuilder.ToString());
+            }
+
+            return summarizedTexts;
+
+            // - 고정 양식인 문자열은 모두 잘라냄.
+            // - 단, 내용이 없는 경우에는 고정 양식 문자열을 내용에 포함(확인하는 사람이 내용이 없음을 알 수 있도록)
+            static bool SliceFormMessage(string originalText, string formMessage)
+            {
+                if (string.Compare(originalText, formMessage, StringComparison.InvariantCultureIgnoreCase) == 0)
+                    return false;
+
+                return originalText.Contains(formMessage);
+            }
         }
     }
 }
