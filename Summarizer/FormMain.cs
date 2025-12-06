@@ -8,19 +8,9 @@ namespace Summarizer
     public partial class SummarizerForm : Form
     {
         /// <summary>
-        /// 사용자 이름
+        /// 설정 객체
         /// </summary>
-        private static string staffName = string.Empty;
-
-        /// <summary>
-        /// 예약 확인 메시지
-        /// </summary>
-        private static string reservationConfirmMessage = string.Empty;
-
-        /// <summary>
-        /// 생략
-        /// </summary>
-        private static string[] sliceMessages = null;
+        private readonly Configuration configuration = new();
 
 
         /// <summary>
@@ -73,12 +63,12 @@ namespace Summarizer
             if (AppSettings.Default == null)
                 return;
 
-            staffName = AppSettings.Default.StaffName;
-            reservationConfirmMessage = AppSettings.Default.ReservationConfirmMessage;
+            configuration.staffName = AppSettings.Default.StaffName;
+            configuration.reservationConfirmMessage = AppSettings.Default.ReservationConfirmMessage;
             if ((AppSettings.Default.SliceMessages != null) && (AppSettings.Default.SliceMessages.Count > 0))
             {
-                sliceMessages = new string[AppSettings.Default.SliceMessages.Count];
-                AppSettings.Default.SliceMessages.CopyTo(sliceMessages, 0);
+                configuration.sliceMessages = new string[AppSettings.Default.SliceMessages.Count];
+                AppSettings.Default.SliceMessages.CopyTo(configuration.sliceMessages, 0);
             }
         }
 
@@ -171,7 +161,7 @@ namespace Summarizer
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private static string ConvertText(string text)
+        private string ConvertText(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -232,7 +222,7 @@ namespace Summarizer
         /// <remarks>
         /// 메시지의 전체를 '['']' 기호로 감싼다.
         /// </remarks>
-        private static string ConvertCustomerText(string text)
+        private string ConvertCustomerText(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -275,7 +265,7 @@ namespace Summarizer
         /// <remarks>
         /// 메시지를 대괄호 기호([])로 감쌀 필요 없음. + 사전에 지정되어 있는 문자 추가
         /// </remarks>
-        private static string ConvertStaffText(string text)
+        private string ConvertStaffText(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return string.Empty;
@@ -307,7 +297,7 @@ namespace Summarizer
             var lastMessage = splitTexts[^1];
             if (ReservationRegex().IsMatch(lastMessage))
             {
-                var extraMessage = $" / {reservationConfirmMessage} // {staffName}";
+                var extraMessage = $" / {configuration.reservationConfirmMessage} // {configuration.staffName}";
                 builder.Append(extraMessage);
             }
 
@@ -319,7 +309,7 @@ namespace Summarizer
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
-        private static List<string> SplitTextContents(string text)
+        private List<string> SplitTextContents(string text)
         {
             if (string.IsNullOrEmpty(text))
                 return [];
@@ -356,7 +346,7 @@ namespace Summarizer
         /// <remarks>
         /// 텍스트의 축약은 앱 설정 파일에서 설정한 목록에 일치하는 문자열을 잘라내는 방식으로 수행한다.
         /// </remarks>
-        private static List<string> SummarizeTextContents(ICollection<string> texts)
+        private List<string> SummarizeTextContents(ICollection<string> texts)
         {
             List<string> summarizedTexts = new(texts.Count);
             StringBuilder stringBuilder = new();
@@ -365,11 +355,11 @@ namespace Summarizer
                 stringBuilder.Clear();
                 stringBuilder.Append(text);
 
-                if (sliceMessages != null)
+                if (configuration.sliceMessages != null)
                 {
-                    int index = Array.FindIndex(sliceMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
+                    int index = Array.FindIndex(configuration.sliceMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
                     if (index >= 0)
-                        stringBuilder.Replace(sliceMessages[index], string.Empty);
+                        stringBuilder.Replace(configuration.sliceMessages[index], string.Empty);
                 }
 
                 summarizedTexts.Add(stringBuilder.ToString());
