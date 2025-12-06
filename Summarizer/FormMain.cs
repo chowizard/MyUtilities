@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Windows.Forms;
 
 namespace Summarizer
 {
@@ -169,39 +170,48 @@ namespace Summarizer
             var matches = KakaoTalkMessageTimeRegex().Matches(text);
             if (matches.Count > 0)
             {
-                // KakoTalk 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 스태프의 메시지로 구분하여 변환 처리
+                // KakoTalk Business 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 스태프의 메시지로 구분하여 변환 처리
                 List<string> convertedTexts = new(matches.Count);
                 for (int matchIndex = 0; matchIndex < matches.Count; ++matchIndex)
                 {
                     var match = matches[matchIndex];
 
-                    int matchStartIndex = match.Index;
-                    int matchEndIndex = ((matchIndex + 1) >= matches.Count) ? text.Length : matches[matchIndex + 1].Index;
-                    int copyCount = matchEndIndex - matchStartIndex;
-                    char[] paragraphBuffer = new char[matchEndIndex - matchStartIndex];
-                    text.CopyTo(match.Index, paragraphBuffer, 0, copyCount);
-                    string paragraph = new(paragraphBuffer);
-
-                    var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-                    if (splited.Length < 3)
-                        continue;
-
-                    string currentConverted;
-                    var senderText = splited[1];
-                    if (KakaoTalkStaffMessageRegex().IsMatch(senderText))
+                    // @NOTE 예외상황에 대한 처리
+                    // : KakaoTalk Business 메시지의 여러 대화들을 한번에 복사할 때, 최초 화자의 대화 문자열에는 시간 표시 텍스트가 없다.
+                    //   이 경우에는 KakaoTalkMessageTimeRegex()에 의한 탐지가 안되기 때문에, 이때는 예외적으로 한번 더 처리한다.
+                    if ((matchIndex == 0) && (match.Index > 0))
                     {
-                        var targetText = string.Join(Environment.NewLine, splited, 2, splited.Length - 2);
-                        currentConverted = ConvertStaffText(targetText);
-                    }
-                    else
-                    {
-                        // '프로필 사진' 텍스트가 있는 경우, 그 다음 줄이 보낸 사람의 이름이다.
-                        int startIndex = senderText.Contains("프로필 사진") ? 3 : 2;
-                        var targetText = string.Join(Environment.NewLine, splited, startIndex, splited.Length - startIndex);
-                        currentConverted = ConvertCustomerText(targetText);
+                        int matchStartIndex = 0;
+                        int matchEndIndex = match.Index - 1;
+                        int copyCount = matchEndIndex - matchStartIndex;
+                        char[] paragraphBuffer = new char[matchEndIndex - matchStartIndex];
+                        text.CopyTo(0, paragraphBuffer, 0, copyCount);
+                        string paragraph = new(paragraphBuffer);
+
+                        if (ConvertCategorizedText(paragraph, true, out var convertedCategorized))
+                        {
+                            // @NOTE 첫 메시지는 시간 표시 텍스트가 없으므로, <화자 이름> + <대화 내용>의 2줄이 최소 단위이다.
+                            var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                            if (splited.Length >= 2)
+                                convertedTexts.Add(convertedCategorized);
+                        }
                     }
 
-                    convertedTexts.Add(currentConverted);
+                    {
+                        int matchStartIndex = match.Index;
+                        int matchEndIndex = ((matchIndex + 1) >= matches.Count) ? text.Length : matches[matchIndex + 1].Index;
+                        int copyCount = matchEndIndex - matchStartIndex;
+                        char[] paragraphBuffer = new char[matchEndIndex - matchStartIndex];
+                        text.CopyTo(match.Index, paragraphBuffer, 0, copyCount);
+                        string paragraph = new(paragraphBuffer);
+
+                        if (ConvertCategorizedText(paragraph, false, out var convertedCategorized))
+                        {
+                            var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                            if (splited.Length >= 3)
+                                convertedTexts.Add(convertedCategorized);
+                        }
+                    }
                 }
 
                 var finalText = string.Join(" / ", convertedTexts);
@@ -212,6 +222,34 @@ namespace Summarizer
                 // KakoTalk 메시지 복사 방식이 아닌 것으로 판정되면, 전체 텍스트를 손님의 메시지로 간주하고 변환 처리
                 return ConvertCustomerText(text);
             }
+        }
+
+        private bool ConvertCategorizedText(string paragraph, bool isFirstMessage, out string convertCategorized)
+        {
+            convertCategorized = null;
+
+            var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            if (splited.Length < 3)
+                return false;
+
+            var senderText = isFirstMessage ? splited[0] : splited[1];
+            if (KakaoTalkStaffMessageRegex().IsMatch(senderText))
+            {
+                var startIndex = isFirstMessage ? 1 : 2;
+                var targetText = string.Join(Environment.NewLine, splited, startIndex, splited.Length - 2);
+                convertCategorized = ConvertStaffText(targetText);
+            }
+            else
+            {
+                // '프로필 사진' 텍스트가 있는 경우, 그 다음 줄이 보낸 사람의 이름이다.
+                int startIndex = senderText.Contains("프로필 사진") ?
+                                 isFirstMessage ? 2 : 3 :
+                                 isFirstMessage ? 1 : 2;
+                var targetText = string.Join(Environment.NewLine, splited, startIndex, splited.Length - startIndex);
+                convertCategorized = ConvertCustomerText(targetText);
+            }
+
+            return true;
         }
 
         /// <summary>
