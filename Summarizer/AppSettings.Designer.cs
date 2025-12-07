@@ -54,6 +54,21 @@ namespace Summarizer {
   <string>저희 병원 알게되신 경로 - </string>
   <string>소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - </string>
 </ArrayOfString>")]
+        public global::System.Collections.Specialized.StringCollection FormMessages {
+            get {
+                return ((global::System.Collections.Specialized.StringCollection)(this["FormMessages"]));
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
+<ArrayOfString xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
+  <string>안녕하세요~</string>
+  <string>몇시가 편하신가요?</string>
+  <string>언제가 편하신가요?</string>
+  <string>^^</string>
+</ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection SliceMessages {
             get {
                 return ((global::System.Collections.Specialized.StringCollection)(this["SliceMessages"]));

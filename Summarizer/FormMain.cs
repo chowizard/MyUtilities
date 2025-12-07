@@ -66,10 +66,13 @@ namespace Summarizer
 
             configuration.staffName = AppSettings.Default.StaffName;
             configuration.reservationConfirmMessage = AppSettings.Default.ReservationConfirmMessage;
-            if ((AppSettings.Default.SliceMessages != null) && (AppSettings.Default.SliceMessages.Count > 0))
+            if ((AppSettings.Default.FormMessages != null) && (AppSettings.Default.FormMessages.Count > 0))
             {
-                configuration.sliceMessages = new string[AppSettings.Default.SliceMessages.Count];
-                AppSettings.Default.SliceMessages.CopyTo(configuration.sliceMessages, 0);
+                configuration.formMessages = new string[AppSettings.Default.FormMessages.Count];
+                AppSettings.Default.FormMessages.CopyTo(configuration.formMessages, 0);
+
+                configuration.sliceMessage = new string[AppSettings.Default.SliceMessages.Count];
+                AppSettings.Default.SliceMessages.CopyTo(configuration.sliceMessage, 0);
             }
         }
 
@@ -393,11 +396,11 @@ namespace Summarizer
                 stringBuilder.Clear();
                 stringBuilder.Append(text);
 
-                if (configuration.sliceMessages != null)
+                if (configuration.formMessages != null)
                 {
-                    int index = Array.FindIndex(configuration.sliceMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
+                    int index = Array.FindIndex(configuration.formMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
                     if (index >= 0)
-                        stringBuilder.Replace(configuration.sliceMessages[index], string.Empty);
+                        stringBuilder.Replace(configuration.formMessages[index], string.Empty);
                 }
 
                 summarizedTexts.Add(stringBuilder.ToString());

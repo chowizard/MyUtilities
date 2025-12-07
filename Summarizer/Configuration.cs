@@ -13,8 +13,13 @@
         public string reservationConfirmMessage = string.Empty;
 
         /// <summary>
-        /// 생략
+        /// 제출 서식 문자열들
         /// </summary>
-        public string[] sliceMessages = null;
+        public string[] formMessages = null;
+
+        /// <summary>
+        /// 생략 대상 문자열들
+        /// </summary>
+        public string[] sliceMessage = null;
     }
 }
