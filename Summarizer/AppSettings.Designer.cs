@@ -65,8 +65,8 @@ namespace Summarizer {
         [global::System.Configuration.DefaultSettingValueAttribute(@"<?xml version=""1.0"" encoding=""utf-16""?>
 <ArrayOfString xmlns:xsd=""http://www.w3.org/2001/XMLSchema"" xmlns:xsi=""http://www.w3.org/2001/XMLSchema-instance"">
   <string>안녕하세요~</string>
-  <string>몇시가 편하신가요?</string>
-  <string>언제가 편하신가요?</string>
+  <string>안녕하세요^^</string>
+  <string>안녕하세요~^^</string>
   <string>^^</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection SliceStaffMessages {

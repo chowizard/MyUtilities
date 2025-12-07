@@ -21,13 +21,13 @@
   &lt;string&gt;소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - &lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
-    <Setting Name="SliceMessages" Type="System.Collections.Specialized.StringCollection" Scope="Application">
+    <Setting Name="SliceStaffMessages" Type="System.Collections.Specialized.StringCollection" Scope="Application">
       <Value Profile="(Default)">&lt;?xml version="1.0" encoding="utf-16"?&gt;
 &lt;ArrayOfString xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"&gt;
   &lt;string&gt;안녕하세요~&lt;/string&gt;
+  &lt;string&gt;^^&lt;/string&gt;
   &lt;string&gt;몇시가 편하신가요?&lt;/string&gt;
   &lt;string&gt;언제가 편하신가요?&lt;/string&gt;
-  &lt;string&gt;^^&lt;/string&gt;
 &lt;/ArrayOfString&gt;</Value>
     </Setting>
   </Settings>

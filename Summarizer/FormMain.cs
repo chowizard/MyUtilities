@@ -15,12 +15,36 @@ namespace Summarizer
 
 
         /// <summary>
-        /// 휴대전화번호를 식별하는 정규표현식 (01000000000 또는 010-0000-0000 방식)
+        /// 휴대전화번호를 식별하는 정규표현식
         /// </summary>
         /// <returns></returns>
+        /// <remarks>
+        /// 010-0000-0000 : 표준
+        /// 01000000000
+        /// 010 0000 0000
+        /// </remarks>
         //[GeneratedRegex("\\b010\\d{8}\\b")]
         [GeneratedRegex(@"\b010.*?\d{4}.*?\d{4}\b")]
         private static partial Regex PhoneNumberRegex();
+
+        /// <summary>
+        /// 생년월일을 식별하는 정규표현식
+        /// </summary>
+        /// <returns></returns>
+        /// <remarks>
+        /// 0000-00-00 : 표준
+        /// 0000년 00월 00일
+        /// 00000000-
+        /// 0000.00.00
+        /// 0000 00 00
+        /// 00-00-00
+        /// 00년 00월 00일
+        /// 000000
+        /// 00 00 00
+        /// 00.00.00
+        /// </remarks>
+        [GeneratedRegex(@"(\b\d?\d?\d{2})년?.*?([0-2]\d)월?.*?([0-3]\d일?)\b")]
+        private static partial Regex BirthNumberRegex();
 
         /// <summary>
         /// 카카오톡 메시지의 시간값을 식별하는 정규표현식
@@ -30,7 +54,7 @@ namespace Summarizer
         private static partial Regex KakaoTalkMessageTimeRegex();
 
         /// <summary>
-        /// 카카오톡 메시지의 스태프 메시지 식별 정규표현식
+        /// 카카오톡 메시지의 직원 메시지 식별 정규표현식
         /// </summary>
         /// <returns></returns>
         [GeneratedRegex(@"님이 보냄 보낸 메시지 가이드")]
@@ -71,8 +95,8 @@ namespace Summarizer
                 configuration.formMessages = new string[AppSettings.Default.FormMessages.Count];
                 AppSettings.Default.FormMessages.CopyTo(configuration.formMessages, 0);
 
-                configuration.sliceMessage = new string[AppSettings.Default.SliceMessages.Count];
-                AppSettings.Default.SliceMessages.CopyTo(configuration.sliceMessage, 0);
+                configuration.sliceMessages = new string[AppSettings.Default.SliceStaffMessages.Count];
+                AppSettings.Default.SliceStaffMessages.CopyTo(configuration.sliceMessages, 0);
             }
         }
 
@@ -160,6 +184,48 @@ namespace Summarizer
             return builder.ToString();
         }
 
+        private static string StandardizeBirthNumber(string birthNumberText)
+        {
+            if (string.IsNullOrEmpty(birthNumberText))
+                return string.Empty;
+
+            int numberCount = 0;
+            StringBuilder builder = new();
+
+            // 100세 미만의 연령이 되도록 연도의 백년 단위를 구분하여 적용한다.
+            //char[] yearBuffer = new char[4];
+            //if (birthNumberText.Length > 6)
+            //    yearBuffer.CopyTo()
+
+            for (int index = 0; index < birthNumberText.Length; ++index)
+            {
+                var character = birthNumberText[index];
+                if (numberCount is 3 or 8)
+                {
+                    builder.Append('-');
+                    ++numberCount;
+                }
+
+                bool isPhoneNumberText = (numberCount > 0) && (numberCount <= 11);
+                if (isPhoneNumberText)
+                {
+                    // 전화번호의 '-' 구분자만 중복으로 추가되지 않게 한다.
+                    if (character is not '-')
+                        builder.Append(character);
+                }
+                else
+                {
+                    // 그 외의 경우에는 '-' 구분자도 원본 메시지에 포함되어 있는 문자로 간주한다.
+                    builder.Append(character);
+                }
+
+                if ((character >= '0') && (character <= '9'))
+                    ++numberCount;
+            }
+
+            return builder.ToString();
+        }
+
         /// <summary>
         /// 텍스트 변환 처리
         /// </summary>
@@ -173,7 +239,7 @@ namespace Summarizer
             var matches = KakaoTalkMessageTimeRegex().Matches(text);
             if (matches.Count > 0)
             {
-                // KakoTalk Business 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 스태프의 메시지로 구분하여 변환 처리
+                // KakoTalk Business 메시지를 복사한 것으로 판정되면, 각 문단을 식별하여 손님 또는 직원의 메시지로 구분하여 변환 처리
                 List<string> convertedTexts = new(matches.Count);
                 for (int matchIndex = 0; matchIndex < matches.Count; ++matchIndex)
                 {
@@ -299,7 +365,7 @@ namespace Summarizer
         }
 
         /// <summary>
-        /// 스태프의 메시지 저장 형식으로 변환한다.
+        /// 직원의 메시지 저장 형식으로 변환한다.
         /// </summary>
         /// <param name="text"></param>
         /// <returns></returns>
@@ -327,6 +393,9 @@ namespace Summarizer
                 // 휴대전화번호인 텍스트는 '-' 기호로 구분
                 if (IsCellPhoneNumber(splitText))
                     currentText = StandardizeCellPhoneNumber(splitText);
+
+                // 생략해도 되는 직원 메시지는 문자열에서 잘라냄.
+                currentText = SliceStaffMessageText(currentText);
 
                 builder.Append(currentText);
 
@@ -398,7 +467,7 @@ namespace Summarizer
 
                 if (configuration.formMessages != null)
                 {
-                    int index = Array.FindIndex(configuration.formMessages, sliceMessage => SliceFormMessage(text, sliceMessage));
+                    int index = Array.FindIndex(configuration.formMessages, formMessage => ContainsFormMessage(text, formMessage));
                     if (index >= 0)
                         stringBuilder.Replace(configuration.formMessages[index], string.Empty);
                 }
@@ -410,12 +479,38 @@ namespace Summarizer
 
             // - 고정 양식인 문자열은 모두 잘라냄.
             // - 단, 내용이 없는 경우에는 고정 양식 문자열을 내용에 포함(확인하는 사람이 내용이 없음을 알 수 있도록)
-            static bool SliceFormMessage(string originalText, string formMessage)
+            static bool ContainsFormMessage(string originalText, string formMessage)
             {
                 if (string.Compare(originalText, formMessage, StringComparison.InvariantCultureIgnoreCase) == 0)
                     return false;
 
                 return originalText.Contains(formMessage);
+            }
+        }
+
+        private string SliceStaffMessageText(string text)
+        {
+            StringBuilder stringBuilder = new(text);
+            if (configuration.sliceMessages != null)
+            {
+                while (true)
+                {
+                    int index = Array.FindIndex(configuration.sliceMessages, sliceMessage => ContainsSliceMessage(stringBuilder.ToString(), sliceMessage));
+                    if (index >= 0)
+                        stringBuilder.Replace(configuration.sliceMessages[index], string.Empty);
+                    else
+                        break;
+                }
+            }
+
+            return stringBuilder.ToString();
+
+            static bool ContainsSliceMessage(string originalText, string sliceMessage)
+            {
+                if (string.Compare(originalText, sliceMessage, StringComparison.InvariantCultureIgnoreCase) == 0)
+                    return false;
+
+                return originalText.Contains(sliceMessage);
             }
         }
     }

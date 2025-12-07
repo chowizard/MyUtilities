@@ -20,6 +20,6 @@
         /// <summary>
         /// 생략 대상 문자열들
         /// </summary>
-        public string[] sliceMessage = null;
+        public string[] sliceMessages = null;
     }
 }
