@@ -69,9 +69,9 @@ namespace Summarizer {
   <string>언제가 편하신가요?</string>
   <string>^^</string>
 </ArrayOfString>")]
-        public global::System.Collections.Specialized.StringCollection SliceMessages {
+        public global::System.Collections.Specialized.StringCollection SliceStaffMessages {
             get {
-                return ((global::System.Collections.Specialized.StringCollection)(this["SliceMessages"]));
+                return ((global::System.Collections.Specialized.StringCollection)(this["SliceStaffMessages"]));
             }
         }
     }
