@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+
+using static System.Net.Mime.MediaTypeNames;
 
 namespace Summarizer
 {
@@ -22,9 +25,13 @@ namespace Summarizer
         /// 010-0000-0000 : 표준
         /// 01000000000
         /// 010 0000 0000
+        /// 821000000000
+        /// 82-010-0000-0000
+        /// +821000000000
+        /// +82-010-0000-0000
         /// </remarks>
-        //[GeneratedRegex("\\b010\\d{8}\\b")]
-        [GeneratedRegex(@"\b010.*?\d{4}.*?\d{4}\b")]
+        [GeneratedRegex(@"\+?\b8?2?.*?0?10.*?\d{4}.*?\d{4}\b")]
+        //[GeneratedRegex(@"\b010.*?\d{4}.*?\d{4}\b")]
         private static partial Regex PhoneNumberRegex();
 
         /// <summary>
@@ -153,8 +160,38 @@ namespace Summarizer
             if (string.IsNullOrEmpty(phoneNumberText))
                 return string.Empty;
 
-            int numberCount = 0;
+            var match = PhoneNumberRegex().Match(phoneNumberText);
+            if ((match == null) || !match.Success)
+                return phoneNumberText;
+
             StringBuilder builder = new();
+
+            // 전화번호 표시 직전까지의 문자열을 복사
+            builder.Append(phoneNumberText, 0, match.Index);
+
+            // 전화번호 부분의 문자열을 표준화 한 후에 복사
+            // : 010-마지막 숫자 8개
+            builder.Append("010-");
+            var matched = match.ToString();
+            var numbers = matched
+                .Where(character => (character >= '0') && (character <= '9'))
+                .TakeLast(8)
+                .ToArray();
+            for (int index = 0; index < numbers.Length; ++index)
+            {
+                if (index == 4)
+                    builder.Append('-');
+
+                builder.Append(numbers[index]);
+            }
+
+            // 뒷 부분의 나머지 문자열 복사
+            var extraTextStartIndex = match.Index + match.Length;
+            builder.Append(phoneNumberText, extraTextStartIndex, phoneNumberText.Length - extraTextStartIndex);
+
+
+#if BLOCKED
+            int numberCount = 0;
             for (int index = 0; index < phoneNumberText.Length; ++index)
             {
                 var character = phoneNumberText[index];
@@ -180,6 +217,7 @@ namespace Summarizer
                 if ((character >= '0') && (character <= '9'))
                     ++numberCount;
             }
+#endif
 
             return builder.ToString();
         }
@@ -266,6 +304,7 @@ namespace Summarizer
                         }
                     }
 
+                    // @NOTE 그 외 일반적인 경우의 메시지 텍스트의 변환 처리
                     {
                         int matchStartIndex = match.Index;
                         int matchEndIndex = ((matchIndex + 1) >= matches.Count) ? text.Length : matches[matchIndex + 1].Index;
