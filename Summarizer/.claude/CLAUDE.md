@@ -69,6 +69,7 @@
 ## 코딩 규칙
 
 - 프로젝트에서 이미 사용 중인 .editorconfig가 있다면, 이를 사용할 것.
+
 - 기존 .editorconfig가 없으면 새로 .editorconfig를 만든다. 이 때 다음과 같은 규칙을 기본적으로 포함하여 생성하라.
   - 소스파일 인코딩은 UTF-8 (No BOM) 사용
   - 중괄호 스타일은 언어 문법 상의 문제가 없다면, 항상 BSD 스타일로만 사용할 것.
@@ -81,11 +82,60 @@
   - 그 외 타입(네임스페이스 / 클래스 / 구조체 / 인터페이스) 이름, 함수(Method), 속성(Property)는 PascalCase 사용
   - 전처리기는 대문자와 '_'로만 사용
   - switch 구문에서 case 구문을 switch보다 들여쓰지 말 것.
+
 - 이름 짓는 방식
   - 내가 특별히 지시하지 않는다면 축약어를 사용하지 말 것.
   - 반복문 변수는 기본적으로 'index'와 같이, 최소 3글자 이상인 단어 사용. (i, j, k 식으로 단문자 사용하지 말 것)
   - Template, Generic 등으로 타입이 이름이 매우 길어지는 경우, 이를 typedef 또는 using 등을 사용하여 축약할 수 있다.
 
+- 코드 블록의 세부 규칙
+  - (대개 분기문 및 getter, setter) 코드에서는 중괄호가 대칭적이어야 한다.
+    - 선호하는 스타일
+      ```csharp
+      string Text
+      {
+          get
+          {
+              return text;  
+          }
+          set
+          {
+              text = value;
+              CheckValidationText(value);
+          }
+      }
+
+      if ()
+      {
+          // Do something 1st
+          // Do something 2nd
+      }
+      else
+      {
+          // Do something single line
+      }
+      ```
+
+    - 선호하지 않는 스타일
+      ```csharp
+      string Text
+      {
+          get => text;
+          set
+          {
+              text = value;
+              CheckValidationText(value);
+          }
+      }
+
+      if ()
+      {
+          // Do something 1st
+          // Do something 2nd
+      }
+      else
+          // Do something single line
+      ```
 ---
 
 ## 저장소 사용 규칙

@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 
 namespace Summarizer.Core
@@ -7,7 +8,9 @@ namespace Summarizer.Core
         private static readonly JsonSerializerOptions jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true,
-            WriteIndented = true
+            WriteIndented = true,
+            IndentSize = 4,
+            Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
         };
 
         public static AppSettings Load(string filePath)

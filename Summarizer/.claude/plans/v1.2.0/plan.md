@@ -41,15 +41,15 @@ Summarizer/
 
 ---
 
-## Story 1 — 솔루션 구조 재편 [신규]
+## Story 1 — 솔루션 구조 재편 [완료]
 
-### 1-1. 디렉토리 생성 및 파일 이동 [신규]
+### 1-1. 디렉토리 생성 및 파일 이동 [완료]
 
 - `Summarizer.Core/` 디렉토리 생성
 - `Summarizer.App/` 디렉토리 생성
 - `icon.ico` → `Summarizer.App/icon.ico` 이동
 
-### 1-2. `Summarizer.sln` 재구성 [신규]
+### 1-2. `Summarizer.sln` 재구성 [완료]
 
 기존 `Summarizer.csproj` 참조를 제거하고, 두 신규 프로젝트를 등록한다.
 
@@ -58,7 +58,7 @@ Summarizer/
 - 추가: `Summarizer.App` (`Summarizer.App/Summarizer.App.csproj`)
 - 각 프로젝트에 새 GUID 발급 (기존 GUID 재사용 금지)
 
-### 1-3. `.gitignore` 추가 [신규]
+### 1-3. `.gitignore` 추가 [완료]
 
 다음 항목을 포함하는 `.gitignore`를 생성한다.
 
@@ -74,9 +74,9 @@ git rm --cached requirements.txt
 
 ---
 
-## Story 2 — `Summarizer.Core` 프로젝트 구성 [신규]
+## Story 2 — `Summarizer.Core` 프로젝트 구성 [완료]
 
-### 2-1. `Summarizer.Core.csproj` 생성 [신규]
+### 2-1. `Summarizer.Core.csproj` 생성 [완료]
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -93,7 +93,7 @@ git rm --cached requirements.txt
 
 `net10.0` (Windows 비의존) — CLI/Web 등으로 확장 시 재사용 가능.
 
-### 2-2. `AppSettings.cs` 구현 [신규]
+### 2-2. `AppSettings.cs` 구현 [완료]
 
 설정 데이터 POCO. JSON 역직렬화 대상이자, 기본값의 단일 정의 지점.
 
@@ -103,7 +103,7 @@ git rm --cached requirements.txt
 - 배열 타입은 `string[]` 사용 (`StringCollection` 완전 제거)
 - 네임스페이스: `Summarizer.Core`
 
-### 2-3. `AppSettingsLoader.cs` 구현 [신규]
+### 2-3. `AppSettingsLoader.cs` 구현 [완료]
 
 JSON 파일 로딩 및 파일 자동 생성 로직.
 
@@ -116,7 +116,7 @@ JSON 파일 로딩 및 파일 자동 생성 로직.
 - `JsonSerializerOptions`: `PropertyNameCaseInsensitive = true`, `WriteIndented = true`
 - 네임스페이스: `Summarizer.Core`
 
-### 2-4. `MessageConverter.cs` 구현 [신규]
+### 2-4. `MessageConverter.cs` 구현 [완료]
 
 현재 `FormMain.cs`의 텍스트 변환 로직 전체를 추출. UI 의존성 없음.
 
@@ -137,9 +137,9 @@ JSON 파일 로딩 및 파일 자동 생성 로직.
 
 ---
 
-## Story 3 — `Summarizer.App` 프로젝트 구성 [신규]
+## Story 3 — `Summarizer.App` 프로젝트 구성 [완료]
 
-### 3-1. `Summarizer.App.csproj` 생성 [신규]
+### 3-1. `Summarizer.App.csproj` 생성 [완료]
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -167,7 +167,7 @@ JSON 파일 로딩 및 파일 자동 생성 로직.
 </Project>
 ```
 
-### 3-2. `AppSettings.json` 생성 [신규]
+### 3-2. `AppSettings.json` 생성 [완료]
 
 `Summarizer.App/` 루트에 배치. `AppSettings.cs` 기본값과 동일한 내용.
 
@@ -194,7 +194,7 @@ JSON 파일 로딩 및 파일 자동 생성 로직.
 }
 ```
 
-### 3-3. `Commands/RelayCommand.cs` 구현 [신규]
+### 3-3. `Commands/RelayCommand.cs` 구현 [완료]
 
 외부 라이브러리 없이 `ICommand` 직접 구현.
 
@@ -205,7 +205,7 @@ JSON 파일 로딩 및 파일 자동 생성 로직.
 - `CanExecuteChanged`: `CommandManager.RequerySuggested` 위임
 - 네임스페이스: `Summarizer.App.Commands`
 
-### 3-4. `ViewModels/MainWindowViewModel.cs` 구현 [신규]
+### 3-4. `ViewModels/MainWindowViewModel.cs` 구현 [완료]
 
 MVVM ViewModel. UI 상태와 커맨드를 보유.
 
@@ -222,7 +222,7 @@ MVVM ViewModel. UI 상태와 커맨드를 보유.
   - `MessageConverter` 인스턴스 생성 (settings 전달)
 - 네임스페이스: `Summarizer.App.ViewModels`
 
-### 3-5. `App.xaml` / `App.xaml.cs` 구현 [신규]
+### 3-5. `App.xaml` / `App.xaml.cs` 구현 [완료]
 
 **`App.xaml`**
 - `StartupUri` 미사용 (코드에서 직접 Window 생성 — ViewModel 주입 필요)
@@ -237,7 +237,7 @@ MVVM ViewModel. UI 상태와 커맨드를 보유.
   4. `new MainWindow(viewModel)` 생성 → `Show()`
 - 네임스페이스: `Summarizer.App`
 
-### 3-6. `MainWindow.xaml` / `MainWindow.xaml.cs` 구현 [신규]
+### 3-6. `MainWindow.xaml` / `MainWindow.xaml.cs` 구현 [완료]
 
 **`MainWindow.xaml`**
 
@@ -295,9 +295,9 @@ Window
 
 ---
 
-## Story 5 — 빌드 및 동작 검증 [신규]
+## Story 5 — 빌드 및 동작 검증 [완료]
 
-### 5-1. 빌드 검증 [신규]
+### 5-1. 빌드 검증 [완료]
 
 ```bash
 dotnet build Summarizer.sln
@@ -307,17 +307,24 @@ dotnet build Summarizer.sln -c Release
 - 빌드 경고/오류 없음 확인
 - `Summarizer.Core` 단독 빌드 성공 확인 (Windows 비의존 검증)
 
-### 5-2. AppSettings.json 자동 생성 검증 [신규]
+### 5-2. AppSettings.json 자동 생성 검증 [완료]
 
 - 출력 디렉토리에서 `AppSettings.json` 삭제 후 앱 실행
 - 앱이 정상 시작되고, `AppSettings.json`이 기본값으로 자동 생성되는지 확인
 
-### 5-3. UI 및 기능 동작 검증 [신규]
+### 5-3. UI 및 기능 동작 검증 [완료]
 
 - 가공된 예제 시나리오(허구의 인물/내용)로 변환 결과 확인 (v1.1.2와 동일한 출력 형식)
 - "항상 맨 위로 고정" 체크박스 동작 확인
 - "복사하기" 버튼 → 클립보드 복사 확인
 - "비우기" 버튼 → 입력/출력 초기화 확인
+
+---
+
+### 5-4. 실행파일 출력 위치 [완료]
+
+- 실행파일은 /Summarizer/bin에 빌드 모드 별(Debug / Release) + 플랫폼 별(net10-windows)로 출력한다.
+- 중간 빌드 파일들(obj 디렉토리)은 /Summarizer/obj에 빌드 모드 별(Debug / Release) + 플랫폼 별(net10-windows)로 출력한다.
 
 ---
 

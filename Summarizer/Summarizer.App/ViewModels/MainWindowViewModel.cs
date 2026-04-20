@@ -15,20 +15,32 @@ namespace Summarizer.App.ViewModels
 
         public string InputText
         {
-            get => field;
-            set { field = value; OnPropertyChanged(); }
+            get { return field; }
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
         } = string.Empty;
 
         public string OutputText
         {
-            get => field;
-            set { field = value; OnPropertyChanged(); }
+            get { return field; }
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
         } = string.Empty;
 
         public bool IsAlwaysOnTop
         {
-            get => field;
-            set { field = value; OnPropertyChanged(); }
+            get { return field; }
+            set
+            {
+                field = value;
+                OnPropertyChanged();
+            }
         }
 
         public ICommand ConvertCommand { get; }
