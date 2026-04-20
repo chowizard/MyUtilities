@@ -1,0 +1,14 @@
+# 개인정보 및 실제 데이터가 포함될 수 있는 파일
+requirements.txt
+
+# 빌드 산출물
+bin/
+obj/
+
+# IDE
+.vs/
+.idea/
+*.user
+
+# Claude Code 세션 백업 (임시)
+.claude/.edit-baks/
