@@ -4,3 +4,4 @@
 /Summarizer/*.user
 /Summarizer/.idea
 *.code-workspace
+.vscode
