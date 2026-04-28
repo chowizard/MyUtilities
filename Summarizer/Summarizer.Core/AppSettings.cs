@@ -25,5 +25,7 @@ namespace Summarizer.Core
             "안녕하세요~^^",
             "^^"
         ];
+
+        public string Theme { get; set; } = "System";
     }
 }

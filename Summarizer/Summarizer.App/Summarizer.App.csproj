@@ -6,8 +6,8 @@
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
         <ImplicitUsings>enable</ImplicitUsings>
-        <FileVersion>1.2.0</FileVersion>
-        <AssemblyVersion>1.2.0</AssemblyVersion>
+        <FileVersion>1.2.1</FileVersion>
+        <AssemblyVersion>1.2.1</AssemblyVersion>
         <ApplicationIcon>icon.ico</ApplicationIcon>
     </PropertyGroup>
 
@@ -16,6 +16,11 @@
         <Content Include="AppSettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Resource Include="Themes\LightTheme.xaml" />
+        <Resource Include="Themes\DarkTheme.xaml" />
     </ItemGroup>
 
     <ItemGroup>

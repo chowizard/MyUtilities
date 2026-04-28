@@ -6,6 +6,7 @@ namespace Summarizer.Core
     public partial class MessageConverter
     {
         private readonly AppSettings settings;
+        private readonly SliceMatcher[] sliceMatchers;
 
 
         [GeneratedRegex(@"\+?\b8?2?.*?0?10.*?\d{4}.*?\d{4}\b")]
@@ -24,9 +25,24 @@ namespace Summarizer.Core
         private static partial Regex ReservationRegex();
 
 
+        private readonly record struct SliceMatcher(bool IsRegex, string Value, Regex? Pattern);
+
+
         public MessageConverter(AppSettings settings)
         {
             this.settings = settings;
+            sliceMatchers = [.. settings.SliceStaffMessages.Select(ParseSliceMatcher)];
+        }
+
+        private static SliceMatcher ParseSliceMatcher(string message)
+        {
+            const string regexPrefix = "regex:";
+            if (message.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var pattern = message[regexPrefix.Length..];
+                return new SliceMatcher(true, pattern, new Regex(pattern, RegexOptions.Compiled));
+            }
+            return new SliceMatcher(false, message, null);
         }
 
         public string Convert(string text)
@@ -80,7 +96,9 @@ namespace Summarizer.Core
                 return string.Join(" / ", convertedTexts);
             }
             else
+            {
                 return ConvertCustomerText(text);
+            }
         }
 
         private bool ConvertCategorizedText(string paragraph, bool isFirstMessage, out string convertCategorized)
@@ -238,25 +256,42 @@ namespace Summarizer.Core
 
         private string SliceStaffMessageText(string text)
         {
-            StringBuilder stringBuilder = new(text);
-            while (true)
+            var current = text;
+            bool replaced = true;
+            while (replaced)
             {
-                int index = Array.FindIndex(settings.SliceStaffMessages, sliceMessage => ContainsSliceMessage(stringBuilder.ToString(), sliceMessage));
-                if (index >= 0)
-                    stringBuilder.Replace(settings.SliceStaffMessages[index], string.Empty);
-                else
-                    break;
+                replaced = false;
+                foreach (var matcher in sliceMatchers)
+                {
+                    if (TryApplySliceMatcher(matcher, current, out var next))
+                    {
+                        current = next;
+                        replaced = true;
+                        break;
+                    }
+                }
             }
+            return current;
+        }
 
-            return stringBuilder.ToString();
-
-            static bool ContainsSliceMessage(string originalText, string sliceMessage)
+        private static bool TryApplySliceMatcher(SliceMatcher matcher, string text, out string result)
+        {
+            if (matcher.IsRegex)
             {
-                if (string.Compare(originalText, sliceMessage, StringComparison.InvariantCultureIgnoreCase) == 0)
-                    return false;
-
-                return originalText.Contains(sliceMessage);
+                var next = matcher.Pattern!.Replace(text, string.Empty);
+                if (next != text && !string.IsNullOrEmpty(next))
+                {
+                    result = next;
+                    return true;
+                }
             }
+            else if (text != matcher.Value && text.Contains(matcher.Value))
+            {
+                result = text.Replace(matcher.Value, string.Empty);
+                return true;
+            }
+            result = text;
+            return false;
         }
 
         private static bool IsCellPhoneNumber(string text)

@@ -26,5 +26,11 @@ namespace Summarizer.Core
             File.WriteAllText(filePath, defaultJson);
             return defaultSettings;
         }
+
+        public static void Save(string filePath, AppSettings settings)
+        {
+            var json = JsonSerializer.Serialize(settings, jsonOptions);
+            File.WriteAllText(filePath, json);
+        }
     }
 }
