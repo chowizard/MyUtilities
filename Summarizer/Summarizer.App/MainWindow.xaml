@@ -7,7 +7,7 @@
         Topmost="{Binding IsAlwaysOnTop}"
         ResizeMode="CanResizeWithGrip">
 
-    <DockPanel>
+    <DockPanel Background="{DynamicResource AppBackground}">
 
         <!-- 메뉴 바 -->
         <Menu DockPanel.Dock="Top">

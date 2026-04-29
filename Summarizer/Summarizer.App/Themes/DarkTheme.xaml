@@ -27,26 +27,95 @@
 
     <!-- TextBox -->
     <Style TargetType="TextBox">
-        <Setter Property="Background"   Value="{StaticResource PanelBackground}" />
-        <Setter Property="Foreground"   Value="{StaticResource AppForeground}" />
-        <Setter Property="BorderBrush"  Value="{StaticResource BorderBrush}" />
+        <Setter Property="Background"      Value="{StaticResource PanelBackground}" />
+        <Setter Property="Foreground"      Value="{StaticResource AppForeground}" />
+        <Setter Property="BorderBrush"     Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding"      Value="4" />
-        <Setter Property="CaretBrush"   Value="{StaticResource AppForeground}" />
+        <Setter Property="Padding"         Value="4" />
+        <Setter Property="CaretBrush"      Value="{StaticResource AppForeground}" />
     </Style>
 
-    <!-- Button -->
+    <!-- Button (커스텀 템플릿 — Aero 기본 템플릿의 하드코딩 색상 무력화) -->
     <Style TargetType="Button">
-        <Setter Property="Background"   Value="{StaticResource ControlBackground}" />
-        <Setter Property="Foreground"   Value="{StaticResource AppForeground}" />
-        <Setter Property="BorderBrush"  Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding"      Value="8,4" />
+        <Setter Property="Background"                Value="{StaticResource ControlBackground}" />
+        <Setter Property="Foreground"                Value="{StaticResource AppForeground}" />
+        <Setter Property="BorderBrush"               Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness"           Value="1" />
+        <Setter Property="Padding"                   Value="8,4" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="VerticalContentAlignment"   Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            Padding="{TemplateBinding Padding}"
+                            SnapsToDevicePixels="True">
+                        <ContentPresenter Focusable="False"
+                                          HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                          VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          RecognizesAccessKey="True" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.8" />
+                        </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="border" Property="Opacity" Value="0.6" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="border" Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
-    <!-- CheckBox -->
+    <!-- CheckBox (커스텀 템플릿 — 시스템 강조색 대신 테마 색상 사용) -->
     <Style TargetType="CheckBox">
-        <Setter Property="Foreground" Value="{StaticResource AppForeground}" />
+        <Setter Property="Foreground"  Value="{StaticResource AppForeground}" />
+        <Setter Property="Background"  Value="{StaticResource PanelBackground}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="CheckBox">
+                    <StackPanel Orientation="Horizontal">
+                        <Border x:Name="checkBoxBorder"
+                                Width="16" Height="16"
+                                Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="1"
+                                VerticalAlignment="Center"
+                                SnapsToDevicePixels="True">
+                            <Path x:Name="checkMark"
+                                  Data="M 2,8 L 6,12 L 14,3"
+                                  Stroke="{TemplateBinding Foreground}"
+                                  StrokeThickness="1.5"
+                                  StrokeStartLineCap="Round"
+                                  StrokeEndLineCap="Round"
+                                  Visibility="Collapsed" />
+                        </Border>
+                        <ContentPresenter Margin="5,0,0,0"
+                                          VerticalAlignment="Center"
+                                          RecognizesAccessKey="True" />
+                    </StackPanel>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="checkMark" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="checkBoxBorder" Property="BorderBrush" Value="{StaticResource AppForeground}" />
+                        </Trigger>
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="checkBoxBorder" Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Label -->
