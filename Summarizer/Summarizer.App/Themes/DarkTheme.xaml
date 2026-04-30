@@ -9,6 +9,7 @@
     <Color x:Key="BorderColor">#555555</Color>
     <Color x:Key="MenuBackgroundColor">#2D2D2D</Color>
     <Color x:Key="DisabledForegroundColor">#777777</Color>
+    <Color x:Key="MenuHoverBackgroundColor">#4A4A4A</Color>
 
     <!-- 브러시 -->
     <SolidColorBrush x:Key="AppBackground"     Color="{StaticResource AppBackgroundColor}" />
@@ -17,7 +18,8 @@
     <SolidColorBrush x:Key="AppForeground"     Color="{StaticResource AppForegroundColor}" />
     <SolidColorBrush x:Key="BorderBrush"       Color="{StaticResource BorderColor}" />
     <SolidColorBrush x:Key="MenuBackground"    Color="{StaticResource MenuBackgroundColor}" />
-    <SolidColorBrush x:Key="DisabledForeground" Color="{StaticResource DisabledForegroundColor}" />
+    <SolidColorBrush x:Key="DisabledForeground"   Color="{StaticResource DisabledForegroundColor}" />
+    <SolidColorBrush x:Key="MenuHoverBackground" Color="{StaticResource MenuHoverBackgroundColor}" />
 
     <!-- Window -->
     <Style TargetType="Window">
@@ -129,10 +131,136 @@
         <Setter Property="Foreground" Value="{StaticResource AppForeground}" />
     </Style>
 
-    <!-- MenuItem -->
+    <!-- MenuItem (커스텀 템플릿 — Aero2 파란 hover 색상 대신 다크 테마 색상 사용) -->
     <Style TargetType="MenuItem">
-        <Setter Property="Background" Value="{StaticResource MenuBackground}" />
-        <Setter Property="Foreground" Value="{StaticResource AppForeground}" />
+        <Setter Property="Background"   Value="Transparent" />
+        <Setter Property="Foreground"   Value="{StaticResource AppForeground}" />
+        <Setter Property="BorderBrush"  Value="Transparent" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding"      Value="8,4" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="MenuItem">
+                    <Grid SnapsToDevicePixels="True">
+                        <Border x:Name="templateRoot"
+                                Background="{TemplateBinding Background}"
+                                Padding="{TemplateBinding Padding}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition x:Name="col0" MinWidth="22" Width="Auto" SharedSizeGroup="MenuItemIconColumnGroup" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition x:Name="col2" Width="14" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- 체크마크 영역 -->
+                                <Border x:Name="glyphPanel"
+                                        Grid.Column="0"
+                                        Width="22" Height="22"
+                                        Visibility="Collapsed"
+                                        VerticalAlignment="Center">
+                                    <Path x:Name="glyph"
+                                          Data="M 2,8 L 6,12 L 14,3"
+                                          Stroke="{TemplateBinding Foreground}"
+                                          StrokeThickness="1.5"
+                                          StrokeStartLineCap="Round"
+                                          StrokeEndLineCap="Round"
+                                          Visibility="Collapsed"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center" />
+                                </Border>
+
+                                <!-- 헤더 텍스트 -->
+                                <ContentPresenter Grid.Column="1"
+                                                  ContentSource="Header"
+                                                  RecognizesAccessKey="True"
+                                                  VerticalAlignment="Center"
+                                                  HorizontalAlignment="Left"
+                                                  SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+
+                                <!-- 서브메뉴 화살표 -->
+                                <Path x:Name="rightArrow"
+                                      Grid.Column="2"
+                                      Data="M 0,0 L 4,4 L 0,8"
+                                      Stroke="{TemplateBinding Foreground}"
+                                      StrokeThickness="1.5"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      HorizontalAlignment="Center"
+                                      VerticalAlignment="Center"
+                                      Visibility="Collapsed" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 서브메뉴 팝업 -->
+                        <Popup x:Name="PART_Popup"
+                               AllowsTransparency="True"
+                               Focusable="False"
+                               IsOpen="{Binding IsSubmenuOpen, RelativeSource={RelativeSource TemplatedParent}}"
+                               PopupAnimation="{DynamicResource {x:Static SystemParameters.MenuPopupAnimationKey}}"
+                               Placement="Bottom">
+                            <Border Background="{StaticResource MenuBackground}"
+                                    BorderBrush="{StaticResource BorderBrush}"
+                                    BorderThickness="1"
+                                    Padding="2">
+                                <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle"
+                                                KeyboardNavigation.TabNavigation="Cycle"
+                                                Grid.IsSharedSizeScope="True"
+                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" />
+                            </Border>
+                        </Popup>
+                    </Grid>
+
+                    <ControlTemplate.Triggers>
+                        <!-- TopLevelHeader (파일, 보기, 도움말): 아이콘·화살표 열 숨김, 팝업 아래 배치 -->
+                        <Trigger Property="Role" Value="TopLevelHeader">
+                            <Setter Property="Padding" Value="8,4" />
+                            <Setter TargetName="col0" Property="MinWidth" Value="0" />
+                            <Setter TargetName="col0" Property="Width" Value="0" />
+                            <Setter TargetName="col2" Property="Width" Value="0" />
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Bottom" />
+                        </Trigger>
+                        <!-- TopLevelItem: 아이콘·화살표 열 숨김 -->
+                        <Trigger Property="Role" Value="TopLevelItem">
+                            <Setter Property="Padding" Value="8,4" />
+                            <Setter TargetName="col0" Property="MinWidth" Value="0" />
+                            <Setter TargetName="col0" Property="Width" Value="0" />
+                            <Setter TargetName="col2" Property="Width" Value="0" />
+                        </Trigger>
+                        <!-- SubmenuHeader (테마): 화살표 표시, 팝업 오른쪽 배치 -->
+                        <Trigger Property="Role" Value="SubmenuHeader">
+                            <Setter Property="Padding" Value="4,4,0,4" />
+                            <Setter TargetName="PART_Popup" Property="Placement" Value="Right" />
+                            <Setter TargetName="rightArrow" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!-- SubmenuItem: 기본 서브메뉴 항목 -->
+                        <Trigger Property="Role" Value="SubmenuItem">
+                            <Setter Property="Padding" Value="4,4,8,4" />
+                        </Trigger>
+                        <!-- Hover -->
+                        <Trigger Property="IsHighlighted" Value="True">
+                            <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource MenuHoverBackground}" />
+                        </Trigger>
+                        <!-- 서브메뉴 열림 -->
+                        <Trigger Property="IsSubmenuOpen" Value="True">
+                            <Setter TargetName="templateRoot" Property="Background" Value="{StaticResource MenuHoverBackground}" />
+                        </Trigger>
+                        <!-- 체크 가능 항목: 체크마크 열 표시 (체크 여부 무관) -->
+                        <Trigger Property="IsCheckable" Value="True">
+                            <Setter TargetName="glyphPanel" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!-- 체크됨: 체크마크 표시 -->
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="glyphPanel" Property="Visibility" Value="Visible" />
+                            <Setter TargetName="glyph" Property="Visibility" Value="Visible" />
+                        </Trigger>
+                        <!-- 비활성화 -->
+                        <Trigger Property="IsEnabled" Value="False">
+                            <Setter TargetName="templateRoot" Property="Opacity" Value="0.4" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
 
     <!-- Separator -->

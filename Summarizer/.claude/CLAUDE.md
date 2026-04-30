@@ -2,14 +2,16 @@
 
 ## 프로젝트 개요
 
-카카오톡 비즈니스 채팅 메시지를 표준화된 요약 형식으로 변환하는 **Windows Forms 유틸리티 앱**이다.
+카카오톡 비즈니스 채팅 메시지를 표준화된 요약 형식으로 변환하는 **Windows 유틸리티 앱**이다.
 성형외과 클리닉 직원이 고객과의 상담 예약 메시지를 정해진 양식으로 빠르게 정리하기 위해 사용한다.
 
 - **플랫폼**
-  - 지금은 .NET 8 / Windows Forms
-  - 향후 버전에서는 변경할 수 있음
+  - .NET 기반 (분명한 이유가 없다면, LTS 버전 사용)
+  - 현재로써는, Windows OS만 지원
+
 - **빌드 결과물**: WinExe (단일 실행 파일)
-- **현재 버전**: 1.1.2 (`Program.cs`의 `Version` 상수 및 `.csproj`의 `FileVersion`/`AssemblyVersion` 동기화 필요)
+
+- **버전 설정**: x.x.x의 Semantic Versioning 방식 (`Program.cs`의 `Version` 상수 및 `.csproj`의 `FileVersion`/`AssemblyVersion` 동기화 필요)
 
 ---
 
@@ -18,9 +20,11 @@
 - CLAUDE.md 및 작업 지시에 관련한 .md 파일들은 .claude 디렉토리의 하위에 위치해라. 
   - 작업 계획 및 지시에 대한 .md 파일들은 여러 개일 수 있다.
   - 필요에 따라, 하위 디렉토리 구조를 더 깊게 하여 .md 파일들을 배치할 수 있다.
+
 - 나의 지시사항을 수행한 결과에 대해, **네가 무엇을 수행했는지에 대한 상세한 보고서를 작성해라.**
   - 일반적으로 .md 형식으로 작성해라.
   - 더 효과적인 보고서 형식이 있다고 판단했다면, 이를 나에게 추천하고, *내가 승인한 뒤*, 그 형식으로 보고서를 작성할 수 있다.
+
 - 작업 계획 디렉토리의 구조
     ```
     Summarizer/
@@ -39,11 +43,14 @@
     ```
   - 작업 디렉토리의 범위는 특별한 지시가 없는 한, Summarizer/ 디렉토리 내에서만 수행한다.
     - 그 외의 위치에 작업이 필요한 경우에는, 내 승인을 받아야 한다.
+
 - 각 버전 별 작업 계획 및 지시서의 일반적인 지침
+
   - research.md
     - 내가 지시한 버전 또는 마일스톤 목표의 기능들을 깊이 있게 이해하고, 가능한 상세히 파악하여 그 결과 보고를 research.md 파일에 작성하라.
     - 해당 버전 또는 마일스톤의 research.md를 완료하기 전에는 프로젝트에 대해 어떠한 구현 및 변경도 하지 말 것.
     - 내가 research.md의 완료를 승인한 뒤에 plan.md를 만들어라.
+
   - plan.md
     - research.md의 보고 내용을 토대로, 구현 계획을 가능한 상세하게 작성하라.
     - 반드시 research.md를 완료하고, 이를 내가 승인한 이후에 작성해야 한다.
@@ -52,6 +59,7 @@
       - [신규] (또는 [ToDo])
       - [진행] (또는 [InProgress])
       - [완료] (또는 [Complete])
+
   - task.md
     - task.md에는 plan.md의 내용을 모두 구현하기 위한 실제 과업 목록들을 만들고, 각 과업마다 수행 결과를 작성하라.
     - 반드시 plan.md를 완료하고, 이를 내가 승인한 이후에 작성해야 한다.
@@ -59,9 +67,11 @@
       - [신규] (또는 [ToDo])
       - [진행] (또는 [InProgress])
       - [완료] (또는 [Complete])
+
   - 지시 대상을 파악할 때 건너뛸 수 있는 항목들
     - [완료] (또는 [Complete]), [닫음] (또는 [Closed]) tag가 붙은 계획 및 과업은 지시사항을 파악할 때 건너뛸 수 있다.
     - 수정 또는 재작업이 필요한 경우, 내가 [완료]가 아닌, 다른 tag로 변경할 것이다.
+
   - 그 외, 프로젝트 진행에 더 효과적이거나 일반적으로 권장하는 방안에 대해 추천할 수 있으며, 내 승인을 받고 적용할 수 있다.
 
 ---
@@ -90,52 +100,83 @@
 
 - 코드 블록의 세부 규칙
   - (대개 분기문 및 getter, setter) 코드에서는 중괄호가 대칭적이어야 한다.
-    - 선호하는 스타일
-      ```csharp
-      string Text
-      {
-          get
-          {
-              return text;  
-          }
-          set
-          {
-              text = value;
-              CheckValidationText(value);
-          }
-      }
+    - 나쁜 스타일
+    ```csharp
+    string Text
+    {
+        get => text; // 또는 get { return text; }
+        set
+        {
+            text = value;
+            CheckValidationText(value);
+        }
+    }
 
-      if ()
-      {
-          // Do something 1st
-          // Do something 2nd
-      }
-      else
-      {
-          // Do something single line
-      }
-      ```
+    if (condition)
+    {
+        DoSomething1();
+        DoSomething2();
+    }
+    else // if 구문에 블록이 존재하면, else 구문에도 (코드가 한 줄인지 여부와 무관하게) 블록이 존재해야 한다.
+        DoSomethingElse();
+    ```
 
-    - 선호하지 않는 스타일
-      ```csharp
-      string Text
-      {
-          get => text;
-          set
-          {
-              text = value;
-              CheckValidationText(value);
-          }
-      }
+    - 좋은 스타일
+    ```csharp
+    string Text
+    {
+        get
+        {
+            return text;  
+        }
+        set
+        {
+            text = value;
+            CheckValidationText(value);
+        }
+    }
 
-      if ()
-      {
-          // Do something 1st
-          // Do something 2nd
-      }
-      else
-          // Do something single line
-      ```
+    if (condition)
+    {
+        DoSomething1();
+        DoSomething2();
+    }
+    else
+    {
+        DoSomethingElse();
+    }
+
+    // 분기문 내에 코드가 한 줄인 경우에만 중괄호를 생략한다.
+    if (condition)
+        DoSomething();  
+    else
+        DoSomethingElse();
+    ```
+  
+  - 특별한 경우가 아니라면, ';'로 끝나야 하는 구문들은 반드시 별도의 줄에 배치한다.
+    - 나쁜 스타일
+    ```csharp
+    void Function() { DoSomething1(); DoSomething2(); }
+    ```
+
+    - 좋은 스타일
+    ```csharp
+    void Function() 
+    {
+        DoSomething1(); 
+        DoSomething2();
+    }
+    ```
+
+- 함수의 매개변수 작성 규칙
+  - 함수 매개변수는 camelCase 사용
+  - 함수의 매개변수 줄바꾼 규칙
+    - 핵심적인 원칙은, 한줄에 매개변수들을 너무 길게 늘어뜨려서 가독성을 해치지 않게 하는 것이다.
+    - 일반적으로, 함수의 매개변수는 3개까지는 함수와 같은 줄에 작성할 수 있다.
+    - 일반적으로, 함수의 매개변수가 4개가 넘어가는 경우에는 첫 매개변수는 함수와 같은 줄에, 그 다음 매개변수들마다 각각의 줄에 작성한다. (이 때, 모든 매개변수들의 텍스트 열은 맞춘다.)
+    - 다만, 화면 영역에서 모든 매개변수들이 한줄에 충분히 보이는 경우에는 예외를 적용할 수 있다.
+      - 매개변수가 4개가 넘더라도, 화면을 세로로 2분할한 크기 안에 한줄로 표현 가능하다면, 그냥 모든 매개변수들을 한줄로 표현해도 된다.
+      - 매개변수가 3개 이하라고 할지라도, 한줄에 표시하기에 너무 길다면(화면을 세로로 2분할한 크기에서, 한줄로 한번에 볼 수 없다면), 각 매개변수들을 별도의 줄에 나눠서 작성한다.
 ---
 
 ## 저장소 사용 규칙
