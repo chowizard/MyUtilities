@@ -1,7 +1,7 @@
 <Window x:Class="Summarizer.App.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Summarizer (v1.2.1)"
+        Title="Summarizer"
         Width="830" Height="460"
         MinWidth="600" MinHeight="380"
         Topmost="{Binding IsAlwaysOnTop}"
