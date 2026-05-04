@@ -18,13 +18,7 @@ namespace Summarizer.Core
             "소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - "
         ];
 
-        public string[] SliceStaffMessages { get; init; } =
-        [
-            "안녕하세요~",
-            "안녕하세요^^",
-            "안녕하세요~^^",
-            "^^"
-        ];
+        public ReplaceMessage[] ReplaceMessages { get; init; } = [];
 
         public string Theme { get; set; } = "System";
     }

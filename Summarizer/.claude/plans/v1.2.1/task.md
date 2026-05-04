@@ -18,16 +18,38 @@
 
 ---
 
-## Story 2 — `sliceStaffMessages` 정규표현식 지원
+## Story 2 — `replaceMessages` 구현 (목표 변경)
 
-### [완료] 2-1. `MessageConverter.cs` regex 지원 구현
+### [완료] 2-1. `ReplaceMessage.cs` 신규 생성
 
-- `SliceMatcher` 내부 record struct 추가
-- 생성자에 `sliceMatchers` 배열 파싱 로직 추가 (`ParseSliceMatcher()`)
-  - 컬렉션 식 `[.. ]` 사용 (IDE 힌트 반영)
-- `SliceStaffMessageText()` 재구현 → `TryApplySliceMatcher()` 분리
-  - 분리 이유: SonarQube S3776 인지 복잡도(17) 초과 → 분리 후 허용 범위 이내로 감소
-- 기존 로컬 함수 `ContainsSliceMessage()` 제거
+- `Summarizer.Core/ReplaceMessage.cs` 신규 파일 생성
+- `Pattern` / `Replacement` 두 필드를 가진 `record` 타입
+
+### [완료] 2-2. `AppSettings.cs` 수정
+
+- `SliceStaffMessages` 프로퍼티 제거
+- `ReplaceMessages` 프로퍼티 추가 (`ReplaceMessage[]`, 기본값 `[]`)
+
+### [완료] 2-3. `AppSettingsLoader.cs` 수정
+
+- `jsonOptions`에 `PropertyNamingPolicy = JsonNamingPolicy.CamelCase` 추가
+  - 기존 `Save()` 호출 시 PascalCase로 직렬화되던 문제 수정
+
+### [완료] 2-4. `MessageConverter.cs` 수정
+
+- `SliceMatcher` record struct 제거
+- `sliceMatchers` 필드 제거
+- `ParseSliceMatcher()` / `SliceStaffMessageText()` / `TryApplySliceMatcher()` 제거
+- `ReplaceMatcher` record struct 추가 (`IsRegex`, `PlainPattern`, `Replacement`, `CompiledPattern`)
+- `replaceMatchers` 필드 추가
+- `ParseReplaceMatcher(ReplaceMessage)` 정적 메서드 추가
+- `ApplyReplaceMessages()` 메서드 추가 (각 항목 순서대로 1회 적용, 루프 없음)
+- `ConvertStaffText()`: `SliceStaffMessageText()` → `ApplyReplaceMessages()` 호출로 변경
+
+### [완료] 2-5. `AppSettings.json` 수정
+
+- `sliceStaffMessages` 배열 제거
+- `replaceMessages` 배열 추가 (기존 항목을 `{ pattern, replacement: "" }` 형식으로 변환)
 
 ---
 

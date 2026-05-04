@@ -7,6 +7,7 @@ namespace Summarizer.Core
     {
         private static readonly JsonSerializerOptions jsonOptions = new()
         {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             PropertyNameCaseInsensitive = true,
             WriteIndented = true,
             IndentSize = 4,

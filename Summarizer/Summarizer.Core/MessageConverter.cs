@@ -6,7 +6,7 @@ namespace Summarizer.Core
     public partial class MessageConverter
     {
         private readonly AppSettings settings;
-        private readonly SliceMatcher[] sliceMatchers;
+        private readonly ReplaceMatcher[] replaceMatchers;
 
 
         [GeneratedRegex(@"\+?\b8?2?.*?0?10.*?\d{4}.*?\d{4}\b")]
@@ -25,24 +25,24 @@ namespace Summarizer.Core
         private static partial Regex ReservationRegex();
 
 
-        private readonly record struct SliceMatcher(bool IsRegex, string Value, Regex? Pattern);
+        private readonly record struct ReplaceMatcher(bool IsRegex, string PlainPattern, string Replacement, Regex? CompiledPattern);
 
 
         public MessageConverter(AppSettings settings)
         {
             this.settings = settings;
-            sliceMatchers = [.. settings.SliceStaffMessages.Select(ParseSliceMatcher)];
+            replaceMatchers = [.. settings.ReplaceMessages.Select(ParseReplaceMatcher)];
         }
 
-        private static SliceMatcher ParseSliceMatcher(string message)
+        private static ReplaceMatcher ParseReplaceMatcher(ReplaceMessage message)
         {
             const string regexPrefix = "regex:";
-            if (message.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
+            if (message.Pattern.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
             {
-                var pattern = message[regexPrefix.Length..];
-                return new SliceMatcher(true, pattern, new Regex(pattern, RegexOptions.Compiled));
+                var pattern = message.Pattern[regexPrefix.Length..];
+                return new ReplaceMatcher(true, pattern, message.Replacement, new Regex(pattern, RegexOptions.Compiled));
             }
-            return new SliceMatcher(false, message, null);
+            return new ReplaceMatcher(false, message.Pattern, message.Replacement, null);
         }
 
         public string Convert(string text)
@@ -186,7 +186,7 @@ namespace Summarizer.Core
                     currentText = StandardizeCellPhoneNumber(currentText);
 
                 currentText = StandardizeBirthNumber(currentText);
-                currentText = SliceStaffMessageText(currentText);
+                currentText = ApplyReplaceMessages(currentText);
 
                 builder.Append(currentText);
 
@@ -254,44 +254,17 @@ namespace Summarizer.Core
             }
         }
 
-        private string SliceStaffMessageText(string text)
+        private string ApplyReplaceMessages(string text)
         {
             var current = text;
-            bool replaced = true;
-            while (replaced)
+            foreach (var matcher in replaceMatchers)
             {
-                replaced = false;
-                foreach (var matcher in sliceMatchers)
-                {
-                    if (TryApplySliceMatcher(matcher, current, out var next))
-                    {
-                        current = next;
-                        replaced = true;
-                        break;
-                    }
-                }
+                if (matcher.IsRegex)
+                    current = matcher.CompiledPattern!.Replace(current, matcher.Replacement);
+                else
+                    current = current.Replace(matcher.PlainPattern, matcher.Replacement);
             }
             return current;
-        }
-
-        private static bool TryApplySliceMatcher(SliceMatcher matcher, string text, out string result)
-        {
-            if (matcher.IsRegex)
-            {
-                var next = matcher.Pattern!.Replace(text, string.Empty);
-                if (next != text && !string.IsNullOrEmpty(next))
-                {
-                    result = next;
-                    return true;
-                }
-            }
-            else if (text != matcher.Value && text.Contains(matcher.Value))
-            {
-                result = text.Replace(matcher.Value, string.Empty);
-                return true;
-            }
-            result = text;
-            return false;
         }
 
         private static bool IsCellPhoneNumber(string text)
