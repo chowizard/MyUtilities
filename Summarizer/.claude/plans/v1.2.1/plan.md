@@ -86,98 +86,148 @@ ClearCommand = new RelayCommand(() =>
 
 ---
 
-## Story 2 — `sliceStaffMessages` 정규표현식 지원 [신규]
+## Story 2 — `replaceMessages` 구현 [신규]
+
+> **목표 변경**: 기존에 구현한 `sliceStaffMessages` 정규표현식 지원을 폐기하고,
+> 보다 범용적인 텍스트 치환 기능인 `replaceMessages`로 대체한다.
 
 ### 2-1. 설계 방향
 
-**prefix 기반 구분** 방식을 사용한다:
-- 항목이 `regex:` 로 시작하면 → 정규표현식으로 처리
-- 그 외 → 기존의 plain string 처리 (현행 유지)
+**`replaceMessages`는 텍스트 치환 규칙의 배열이다.**
 
-예시 (`AppSettings.json`):
+- 기존 `sliceStaffMessages`의 "메시지 제거" 동작은 `replacement: ""`로 표현한다.
+- 각 항목은 `pattern`(검색 대상)과 `replacement`(치환값) 두 필드를 갖는다.
+- `pattern`에 `regex:` 접두사를 붙이면 정규표현식으로 처리한다.
+- `replacement`는 plain text이며, regex 패턴의 경우 `$1` 등 캡처 그룹 참조도 사용할 수 있다.
+- 각 항목은 순서대로 한 번씩 적용된다 (모든 일치 항목 치환, 루프 없음).
+
+**기존 `sliceStaffMessages`와의 대응:**
+
 ```json
-"sliceStaffMessages": [
-    "안녕하세요~",
-    "안녕하세요^^",
-    "regex:안녕하세요[~!^]+"
+// 기존 sliceStaffMessages (제거)
+"sliceStaffMessages": ["안녕하세요~", "regex:안녕하세요[~!^]+"]
+
+// 대체 replaceMessages (replacement: "" 로 동일한 효과)
+"replaceMessages": [
+    { "pattern": "안녕하세요~",            "replacement": "" },
+    { "pattern": "regex:안녕하세요[~!^]+", "replacement": "" }
 ]
 ```
 
-기본값(`AppSettings.cs` 및 `AppSettings.json`)은 기존 plain string 그대로 유지한다. 사용자가 필요 시 `AppSettings.json`을 직접 수정하여 regex 패턴을 추가할 수 있다.
+### 2-2. 신규 파일: `Summarizer.Core/ReplaceMessage.cs`
 
-### 2-2. `MessageConverter.cs` 수정 [신규]
-
-**추가 구조체** (`MessageConverter` 클래스 내부):
+`AppSettings`와 동일 어셈블리에 별도 파일로 작성한다.
 
 ```csharp
-private readonly record struct SliceMatcher(bool IsRegex, string Value, Regex? Pattern);
+namespace Summarizer.Core
+{
+    public record ReplaceMessage
+    {
+        public string Pattern { get; init; } = string.Empty;
+        public string Replacement { get; init; } = string.Empty;
+    }
+}
 ```
 
-**생성자 수정** — `SliceStaffMessages`를 파싱하여 `sliceMatchers` 배열을 구성:
+### 2-3. `AppSettings.cs` 수정
+
+- `SliceStaffMessages` 프로퍼티 **제거**
+- `ReplaceMessages` 프로퍼티 **추가** (기본값: 빈 배열)
 
 ```csharp
-private readonly SliceMatcher[] sliceMatchers;
+public ReplaceMessage[] ReplaceMessages { get; init; } = [];
+```
 
+### 2-4. `AppSettingsLoader.cs` 수정
+
+`jsonOptions`에 `PropertyNamingPolicy`가 설정되어 있지 않아, `Save()` 호출 시 PascalCase로 직렬화된다. `replaceMessages` 추가 시점에 이 문제를 함께 수정한다.
+
+```csharp
+private static readonly JsonSerializerOptions jsonOptions = new()
+{
+    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,   // 추가
+    PropertyNameCaseInsensitive = true,
+    WriteIndented = true,
+    IndentSize = 4,
+    Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+};
+```
+
+- 기존 파일이 PascalCase로 저장되어 있더라도 `PropertyNameCaseInsensitive = true` 덕분에 읽기는 정상 동작한다.
+- 이후 `Save()` 호출 시부터 camelCase로 통일된다.
+
+### 2-5. `MessageConverter.cs` 수정
+
+**제거 대상:**
+- `SliceMatcher` record struct
+- `sliceMatchers` 필드
+- `ParseSliceMatcher()` 정적 메서드
+- `SliceStaffMessageText()` 메서드
+- `TryApplySliceMatcher()` 정적 메서드
+
+**추가 구조:**
+
+```csharp
+private readonly record struct ReplaceMatcher(bool IsRegex, string PlainPattern, string Replacement, Regex? CompiledPattern);
+
+private readonly ReplaceMatcher[] replaceMatchers;
+```
+
+**생성자 수정:**
+
+```csharp
 public MessageConverter(AppSettings settings)
 {
     this.settings = settings;
-    sliceMatchers = settings.SliceStaffMessages
-        .Select(ParseSliceMatcher)
-        .ToArray();
+    replaceMatchers = [.. settings.ReplaceMessages.Select(ParseReplaceMatcher)];
 }
 
-private static SliceMatcher ParseSliceMatcher(string message)
+private static ReplaceMatcher ParseReplaceMatcher(ReplaceMessage message)
 {
     const string regexPrefix = "regex:";
-    if (message.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
+    if (message.Pattern.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
     {
-        var pattern = message[regexPrefix.Length..];
-        return new SliceMatcher(true, pattern, new Regex(pattern, RegexOptions.Compiled));
+        var pattern = message.Pattern[regexPrefix.Length..];
+        return new ReplaceMatcher(true, pattern, message.Replacement, new Regex(pattern, RegexOptions.Compiled));
     }
-    return new SliceMatcher(false, message, null);
+    return new ReplaceMatcher(false, message.Pattern, message.Replacement, null);
 }
 ```
 
-**`SliceStaffMessageText()` 수정** — regex / plain string 분기 처리:
+**`ApplyReplaceMessages()` (`SliceStaffMessageText` 대체):**
 
 ```csharp
-private string SliceStaffMessageText(string text)
+private string ApplyReplaceMessages(string text)
 {
     var current = text;
-    bool replaced = true;
-    while (replaced)
+    foreach (var matcher in replaceMatchers)
     {
-        replaced = false;
-        foreach (var matcher in sliceMatchers)
-        {
-            if (matcher.IsRegex)
-            {
-                var next = matcher.Pattern!.Replace(current, string.Empty);
-                if (next != current && !string.IsNullOrEmpty(next))
-                {
-                    current = next;
-                    replaced = true;
-                    break;
-                }
-            }
-            else
-            {
-                if (current != matcher.Value && current.Contains(matcher.Value))
-                {
-                    current = current.Replace(matcher.Value, string.Empty);
-                    replaced = true;
-                    break;
-                }
-            }
-        }
+        if (matcher.IsRegex)
+            current = matcher.CompiledPattern!.Replace(current, matcher.Replacement);
+        else
+            current = current.Replace(matcher.PlainPattern, matcher.Replacement);
     }
     return current;
 }
 ```
 
-- 기존 로컬 함수 `ContainsSliceMessage()`는 제거한다.
-- `StringBuilder` 대신 `string` 변수로 단순화한다.
-- regex 치환 후 결과가 비어 있게 되는 경우(`string.IsNullOrEmpty(next)`)는 교체하지 않는다 (전체 내용이 패턴에 해당하는 경우 보호).
+**`ConvertStaffText()` 수정:**
+- `currentText = SliceStaffMessageText(currentText)` → `currentText = ApplyReplaceMessages(currentText)`
+
+### 2-6. `AppSettings.json` 수정
+
+- `sliceStaffMessages` 배열 **제거**
+- `replaceMessages` 배열 **추가** (기존 sliceStaffMessages 값 변환):
+
+```json
+"replaceMessages": [
+    { "pattern": "안녕하세요~",   "replacement": "" },
+    { "pattern": "안녕하세요^^",  "replacement": "" },
+    { "pattern": "안녕하세요~^^", "replacement": "" },
+    { "pattern": "^^",           "replacement": "" },
+    { "pattern": "네~^^",        "replacement": "" }
+]
+```
 
 ---
 
@@ -438,7 +488,11 @@ dotnet build Summarizer.sln -c Release
 ### 7-2. 기능 동작 검증 [신규]
 
 - **리팩토링**: 기존 변환 기능이 v1.2.0과 동일한 결과를 내는지 확인
-- **정규표현식 슬라이싱**: `AppSettings.json`에 `regex:` 패턴 추가 후 동작 확인 (허구 데이터 사용)
+- **`replaceMessages`**:
+  - `AppSettings.json`에 `pattern`/`replacement` 쌍 추가 후 치환 동작 확인 (허구 데이터 사용)
+  - `replacement: ""` 으로 기존 sliceStaffMessages와 동일한 제거 동작 확인
+  - `pattern`에 `regex:` 접두사 적용 후 정규표현식 치환 확인
+  - `replacement`에 캡처 그룹 참조(`$1`) 사용 동작 확인
 - **메뉴 바**:
   - 파일 > 설정: `AppSettings.json`이 텍스트 에디터로 열리는지 확인
   - 파일 > 끝내기: 앱 종료 확인
@@ -451,16 +505,17 @@ dotnet build Summarizer.sln -c Release
 
 ## 변경 대상 파일 요약
 
-| 파일 | 변경 내용 |
-|------|-----------|
-| `Summarizer.Core/AppSettings.cs` | `Theme` 프로퍼티 추가 (`get; set;`) |
-| `Summarizer.Core/AppSettingsLoader.cs` | `Save()` 정적 메서드 추가 |
-| `Summarizer.Core/MessageConverter.cs` | 중괄호 수정, `SliceMatcher` 구조체 추가, regex 지원 |
-| `Summarizer.App/App.xaml.cs` | 버전 업데이트, 테마 적용 로직 추가 |
-| `Summarizer.App/AppSettings.json` | `theme` 항목 추가 |
-| `Summarizer.App/MainWindow.xaml` | 버전 업데이트, `DockPanel` + `Menu` 추가 |
-| `Summarizer.App/ViewModels/MainWindowViewModel.cs` | 스타일 수정, 테마/메뉴 관련 프로퍼티·커맨드 추가, 생성자 확장 |
-| `Summarizer.App/Themes/LightTheme.xaml` | 신규 생성 |
-| `Summarizer.App/Themes/DarkTheme.xaml` | 신규 생성 |
-| `Summarizer.App/Summarizer.App.csproj` | 버전 업데이트, 테마 Resource 등록 |
-| `Summarizer.Core/Summarizer.Core.csproj` | 버전 업데이트 |
+| 파일 | 변경 내용 | 상태 |
+|------|-----------|------|
+| `Summarizer.Core/ReplaceMessage.cs` | 신규 생성 — `Pattern` / `Replacement` record | [신규] |
+| `Summarizer.Core/AppSettings.cs` | `SliceStaffMessages` 제거, `ReplaceMessages` 추가, `Theme` 추가 | [신규] |
+| `Summarizer.Core/AppSettingsLoader.cs` | `PropertyNamingPolicy = CamelCase` 추가, `Save()` 추가 | [신규] |
+| `Summarizer.Core/MessageConverter.cs` | 중괄호 수정, `SliceMatcher` 제거 → `ReplaceMatcher` + `ApplyReplaceMessages()` | [신규] |
+| `Summarizer.Core/Summarizer.Core.csproj` | 버전 업데이트 | [완료] |
+| `Summarizer.App/App.xaml.cs` | 버전 업데이트, 테마 적용 로직 추가 | [완료] |
+| `Summarizer.App/AppSettings.json` | `sliceStaffMessages` 제거, `replaceMessages` 추가, `theme` 추가 | [신규] |
+| `Summarizer.App/MainWindow.xaml` | 버전 업데이트, `DockPanel` + `Menu` 추가 | [완료] |
+| `Summarizer.App/ViewModels/MainWindowViewModel.cs` | 스타일 수정, 테마/메뉴 관련 프로퍼티·커맨드 추가, 생성자 확장 | [완료] |
+| `Summarizer.App/Themes/LightTheme.xaml` | 신규 생성 | [완료] |
+| `Summarizer.App/Themes/DarkTheme.xaml` | 신규 생성 | [완료] |
+| `Summarizer.App/Summarizer.App.csproj` | 버전 업데이트, 테마 Resource 등록 | [완료] |
