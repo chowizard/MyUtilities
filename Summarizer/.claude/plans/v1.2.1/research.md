@@ -15,7 +15,15 @@
 - 리펙토링
   - CLAUDE.md에 개정한 규칙사항을 반영하여, 프로젝트 코드의 스타일을 다듬을 것.
 
-- `AppSettings.json`의 `sliceStaffMessages` 항목의 텍스트가 정규표현식인 경우도 지원하도록, 기존의 코드를 수정할 것.
+- `AppSettings.json`의 `sliceStaffMessages` 항목을 `replaceMessages` 항목으로 대체할 것.
+  - 기존의 `sliceStaffMessages`
+    - 기능 삭제. 주 기능들은 `replaceMessages`의 기능으로 대체함.
+  - 대체할 `replaceMessages` 객체
+    - 주어진 텍스트를 (주로 축약 및 생략을 위한) 다른 텍스트로 치환하는 기능
+    - 기존의 `sliceStaffMessages` 기능은 `replaceMessages`에서 해당 메시지를 빈 문자열로 치환하는 방법으로 지원한다.
+    - 정규표현식 지원
+      - 검색 대상(`pattern`)에는 `sliceStaffMessages`와 마찬가지로 `regex:` 접두사를 사용하는 정규표현식 텍스트를 지원한다.
+      - 치환값(`replacement`)은 plain text여도 무방하나, 정규표현식 캡처 그룹 참조(`$1` 등)도 지원한다.
 
 - 앱에 메뉴 바 UI를 추가
   - 파일 탭
