@@ -51,6 +51,27 @@
 - `sliceStaffMessages` 배열 제거
 - `replaceMessages` 배열 추가 (기존 항목을 `{ pattern, replacement: "" }` 형식으로 변환)
 
+### [완료] 2-6. `ReplaceMessage.cs` — `comment` 필드 추가
+
+- `Comment` nullable 프로퍼티 추가 (`string?`)
+- `[JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]` 적용
+  - `comment`가 null인 항목은 직렬화 시 키 자체를 생략
+  - `comment`가 있는 항목은 저장 시에도 유지
+
+### [완료] 2-7. `AppSettings.json` — `replaceMessages` 사전 데이터 교체
+
+- 기존 plain text 항목 5개를 정규표현식 기반 패턴 6개로 교체
+- 각 항목에 `comment` 필드 추가
+
+| comment | pattern | 제거 대상 예시 |
+|---|---|---|
+| 안녕/안녕하세요 + 기호 제거 | `regex:안녕(하세요)?\s*[~!^]*` | 안녕~, 안녕하세요^^, 안녕하세요~^^ |
+| 예/옙/네/넵 + 기호 제거 | `regex:(예\|옙\|네\|넵)\s*[~!^]*` | 네~^^, 넵!, 예~ |
+| 웃음 기호 제거 | `regex:\^{2,}` | ^^, ^^^ |
+| ASCII 웃음 기호 제거 | `regex:[:;]-?\)` | :), ;), :-) |
+| 울음 기호 제거 (ㅜ/ㅠ) | `regex:[ㅜㅠ]{2,}` | ㅜㅜ, ㅠㅠ, ㅜㅠ, ㅠㅜ |
+| 울음 기호 제거 (T.T) | `regex:[Tt]\.[Tt]` | T.T, t.t |
+
 ---
 
 ## Story 3 — `AppSettings` 및 `AppSettingsLoader` 확장
