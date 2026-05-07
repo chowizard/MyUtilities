@@ -312,11 +312,12 @@ namespace Summarizer.Core
             StringBuilder builder = new();
             builder.Append(birthNumberText, 0, match.Index);
 
-            var numbers = match.Value.Where(character => (character > '0') && (character <= '9')).ToArray();
-            var year = numbers.Take(new Range(0, ^5));
-            var month = numbers.Take(new Range(^4, ^3));
-            var day = numbers.Take(new Range(^2, ^1));
-            builder.Append(year).Append('-').Append(month).Append('-').Append(day);
+            var numbers = match.Value.Where(char.IsDigit).ToArray();
+            builder.Append(numbers, 0, numbers.Length - 4); // 연도
+            builder.Append('-');
+            builder.Append(numbers, numbers.Length - 4, 2); // 월
+            builder.Append('-');
+            builder.Append(numbers, numbers.Length - 2, 2); // 일
 
             var extraTextStartIndex = match.Index + match.Length;
             builder.Append(birthNumberText, extraTextStartIndex, birthNumberText.Length - extraTextStartIndex);
