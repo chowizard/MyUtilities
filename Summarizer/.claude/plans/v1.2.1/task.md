@@ -154,6 +154,21 @@
 
 ---
 
+## 버그 수정
+
+### [완료] BugFix-1. `StandardizeBirthNumber()` 예외 및 오결과 수정
+
+- **증상**: `'831119'` 입력 시 예외 발생, 정상 결과 `'83-11-19'` 반환되어야 함
+- **원인 1**: `character > '0'` 필터가 `'0'`을 제외 → 날짜에 `0`이 포함되면 배열 길이가 짧아져 `Range` 계산 오류
+  - 수정: `char.IsDigit` 사용
+- **원인 2**: `Range(0, ^5)` 등의 off-by-one으로 각 단위가 1자리만 추출됨
+  - 수정: `StringBuilder.Append(char[], int, int)` 직접 오프셋 방식으로 교체
+- **원인 3**: `builder.Append(IEnumerable<char>)` 오버로드 없음 → `Append(object)` 경유 → iterator `ToString()` 출력
+  - 수정: 위 방식 교체로 함께 해소
+- 연도/월/일 단위 주석 추가 (가독성 향상)
+
+---
+
 ## Story 7 — 빌드 및 동작 검증
 
 ### [완료] 7-1. 빌드 검증
