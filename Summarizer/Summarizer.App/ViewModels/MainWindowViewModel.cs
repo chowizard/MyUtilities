@@ -72,6 +72,20 @@ namespace Summarizer.App.ViewModels
             }
         } = "System";
 
+        public string StaffName
+        {
+            get
+            {
+                return settings.StaffName;
+            }
+            set
+            {
+                settings.StaffName = value;
+                AppSettingsLoader.Save(settingsFilePath, settings);
+                OnPropertyChanged();
+            }
+        }
+
         public bool IsLightTheme => CurrentTheme == "Light";
         public bool IsDarkTheme => CurrentTheme == "Dark";
         public bool IsSystemTheme => CurrentTheme == "System";

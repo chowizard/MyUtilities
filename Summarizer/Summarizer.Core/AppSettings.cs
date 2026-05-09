@@ -2,7 +2,7 @@ namespace Summarizer.Core
 {
     public class AppSettings
     {
-        public string StaffName { get; init; } = "아무개";
+        public string StaffName { get; set; } = "아무개";
 
         public string ReservationConfirmMessage { get; init; } = "채널로 예약문자 전송";
 
