@@ -151,8 +151,8 @@ namespace Summarizer.Core
 
                 if (IsCellPhoneNumber(currentText))
                     currentText = StandardizeCellPhoneNumber(currentText);
-
-                currentText = StandardizeBirthNumber(currentText);
+                else
+                    currentText = StandardizeBirthNumber(currentText);
 
                 builder.Append(currentText);
 
@@ -184,8 +184,9 @@ namespace Summarizer.Core
 
                 if (IsCellPhoneNumber(currentText))
                     currentText = StandardizeCellPhoneNumber(currentText);
+                else
+                    currentText = StandardizeBirthNumber(currentText);
 
-                currentText = StandardizeBirthNumber(currentText);
                 currentText = ApplyReplaceMessages(currentText);
 
                 builder.Append(currentText);
