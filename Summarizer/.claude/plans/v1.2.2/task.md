@@ -86,6 +86,14 @@
 
 ## 버그 수정
 
+### [완료] BugFix-2. `StandardizeCellPhoneNumber()` 후 생년월일 오매칭 수정
+
+- **증상**: "01011112222" → "010-11-11-2222" (정상: "010-1111-2222")
+  - "01033445577"처럼 월 자리 첫 자리가 [0-2] 범위 밖이면 증상 없음
+- **원인**: `StandardizeCellPhoneNumber()` 실행 후 "010-1111-2222"로 변환된 텍스트에 `StandardizeBirthNumber()`가 연이어 적용됨. `BirthNumberRegex`가 "010"을 연도, "11"을 월, "11"을 일로 오인식하여 "010-11-11" + 나머지 "-2222" → "010-11-11-2222"
+- **수정**: `ConvertCustomerText`, `ConvertStaffText` 양쪽 모두, 전화번호로 판별된 텍스트에는 생년월일 변환을 적용하지 않도록 `if/else` 구조로 변경
+- **수정 파일**: `Summarizer.Core/MessageConverter.cs`
+
 ### [완료] BugFix-1. `replaceMessages` — 예/옙/네/넵 단어 경계 누락 수정
 
 - **증상**: "예약", "네이버", "연예" 등 일반 단어에 포함된 글자까지 함께 삭제됨
