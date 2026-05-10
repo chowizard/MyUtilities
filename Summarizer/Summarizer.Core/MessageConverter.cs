@@ -9,7 +9,7 @@ namespace Summarizer.Core
         private readonly ReplaceMatcher[] replaceMatchers;
 
 
-        [GeneratedRegex(@"\+?\b8?2?.*?0?10.*?\d{4}.*?\d{4}\b")]
+        [GeneratedRegex(@"(?:\+?\b8?2[-\s.]*|\b)0?10[-\s.]*\d{4}[-\s.]*\d{4}\b")]
         private static partial Regex PhoneNumberRegex();
 
         [GeneratedRegex(@"(\b\d?\d?\d{2})년?.*?([0-2]\d)월?.*?([0-3]\d일?)\b")]
