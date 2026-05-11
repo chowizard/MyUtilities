@@ -4,9 +4,11 @@ namespace Summarizer.Core
     {
         public string StaffName { get; set; } = "아무개";
 
-        public string ReservationConfirmMessage { get; init; } = "채널로 예약문자 전송";
+        public string ReservationConfirmMessage { get; set; } = "채널로 예약문자 전송";
 
-        public string[] FormMessages { get; init; } =
+        public bool NormalizeBirthNumber { get; set; } = false;
+
+        public string[] FormMessages { get; set; } =
         [
             "상담받을 분의 성함 / 연락처 - ",
             "생년월일 - ",
@@ -18,7 +20,7 @@ namespace Summarizer.Core
             "소개자 있으실 경우 소개자 성함과 연락처 뒷번호 - "
         ];
 
-        public ReplaceMessage[] ReplaceMessages { get; init; } = [];
+        public ReplaceMessage[] ReplaceStaffMessages { get; set; } = [];
 
         public string Theme { get; set; } = "System";
     }

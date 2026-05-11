@@ -10,7 +10,7 @@ namespace Summarizer.App
 {
     public partial class App : Application
     {
-        internal const string Version = "1.2.2";
+        internal const string Version = "1.2.3";
 
         private string settingsPath = string.Empty;
         private AppSettings settings = new();
@@ -59,7 +59,7 @@ namespace Summarizer.App
             Resources.MergedDictionaries.Add(new ResourceDictionary { Source = uri });
         }
 
-        private static Uri ResolveThemeUri(string theme)
+        internal static Uri ResolveThemeUri(string theme)
         {
             var themeName = ResolveThemeName(theme);
             return new Uri(string.Concat("Themes/", themeName, "Theme.xaml"), UriKind.Relative);

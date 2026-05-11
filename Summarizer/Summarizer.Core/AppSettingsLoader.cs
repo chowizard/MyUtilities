@@ -16,16 +16,30 @@ namespace Summarizer.Core
 
         public static AppSettings Load(string filePath)
         {
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath))
             {
-                var json = File.ReadAllText(filePath);
-                return JsonSerializer.Deserialize<AppSettings>(json, jsonOptions) ?? new AppSettings();
+                var defaultSettings = new AppSettings();
+                Save(filePath, defaultSettings);
+                return defaultSettings;
             }
 
-            var defaultSettings = new AppSettings();
-            var defaultJson = JsonSerializer.Serialize(defaultSettings, jsonOptions);
-            File.WriteAllText(filePath, defaultJson);
-            return defaultSettings;
+            var json = File.ReadAllText(filePath);
+            var settings = JsonSerializer.Deserialize<AppSettings>(json, jsonOptions) ?? new AppSettings();
+
+            // 하위 호환: 구 "replaceMessages" 키 → ReplaceStaffMessages 마이그레이션
+            if (settings.ReplaceStaffMessages.Length == 0)
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.TryGetProperty("replaceMessages", out var legacyElement))
+                {
+                    var legacy = JsonSerializer.Deserialize<ReplaceMessage[]>(
+                        legacyElement.GetRawText(), jsonOptions);
+                    if (legacy?.Length > 0)
+                        settings.ReplaceStaffMessages = legacy;
+                }
+            }
+
+            return settings;
         }
 
         public static void Save(string filePath, AppSettings settings)

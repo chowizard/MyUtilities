@@ -1,5 +1,4 @@
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
@@ -11,8 +10,8 @@ namespace Summarizer.App.ViewModels
 {
     public class MainWindowViewModel : INotifyPropertyChanged
     {
-        private readonly MessageConverter converter;
-        private readonly AppSettings settings;
+        private MessageConverter converter;
+        private AppSettings settings;
         private readonly string settingsFilePath;
         private readonly Action<string> applyTheme;
 
@@ -121,7 +120,20 @@ namespace Summarizer.App.ViewModels
                 () => !string.IsNullOrEmpty(OutputText));
 
             OpenSettingsFileCommand = new RelayCommand(() =>
-                Process.Start(new ProcessStartInfo(settingsFilePath) { UseShellExecute = true }));
+            {
+                var dialogViewModel = new AppSettingsDialogViewModel(settingsFilePath);
+                var dialog = new AppSettingsDialog(dialogViewModel)
+                {
+                    Owner = Application.Current.MainWindow
+                };
+                dialog.Resources.MergedDictionaries.Add(
+                    new ResourceDictionary { Source = App.ResolveThemeUri(settings.Theme) });
+                dialog.ShowDialog();
+
+                settings = AppSettingsLoader.Load(settingsFilePath);
+                converter = new MessageConverter(settings);
+                OnPropertyChanged(nameof(StaffName));
+            });
 
             ExitCommand = new RelayCommand(Application.Current.Shutdown);
 

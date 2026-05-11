@@ -7,6 +7,7 @@ namespace Summarizer.Core
     {
         private readonly AppSettings settings;
         private readonly ReplaceMatcher[] replaceMatchers;
+        private readonly FormMatcher[] formMatchers;
 
 
         [GeneratedRegex(@"(?:\+?\b8?2[-\s.]*|\b)0?10[-\s.]*\d{4}[-\s.]*\d{4}\b")]
@@ -27,11 +28,14 @@ namespace Summarizer.Core
 
         private readonly record struct ReplaceMatcher(bool IsRegex, string PlainPattern, string Replacement, Regex? CompiledPattern);
 
+        private readonly record struct FormMatcher(bool IsRegex, string PlainPattern, Regex? CompiledPattern);
+
 
         public MessageConverter(AppSettings settings)
         {
             this.settings = settings;
-            replaceMatchers = [.. settings.ReplaceMessages.Select(ParseReplaceMatcher)];
+            replaceMatchers = [.. settings.ReplaceStaffMessages.Select(ParseReplaceMatcher)];
+            formMatchers = [.. settings.FormMessages.Select(ParseFormMatcher)];
         }
 
         private static ReplaceMatcher ParseReplaceMatcher(ReplaceMessage message)
@@ -43,6 +47,17 @@ namespace Summarizer.Core
                 return new ReplaceMatcher(true, pattern, message.Replacement, new Regex(pattern, RegexOptions.Compiled));
             }
             return new ReplaceMatcher(false, message.Pattern, message.Replacement, null);
+        }
+
+        private static FormMatcher ParseFormMatcher(string formMessage)
+        {
+            const string regexPrefix = "regex:";
+            if (formMessage.StartsWith(regexPrefix, StringComparison.OrdinalIgnoreCase))
+            {
+                var pattern = formMessage[regexPrefix.Length..];
+                return new FormMatcher(true, pattern, new Regex(pattern, RegexOptions.Compiled));
+            }
+            return new FormMatcher(false, formMessage, null);
         }
 
         public string Convert(string text)
@@ -151,7 +166,7 @@ namespace Summarizer.Core
 
                 if (IsCellPhoneNumber(currentText))
                     currentText = StandardizeCellPhoneNumber(currentText);
-                else
+                else if (settings.NormalizeBirthNumber)
                     currentText = StandardizeBirthNumber(currentText);
 
                 builder.Append(currentText);
@@ -184,7 +199,7 @@ namespace Summarizer.Core
 
                 if (IsCellPhoneNumber(currentText))
                     currentText = StandardizeCellPhoneNumber(currentText);
-                else
+                else if (settings.NormalizeBirthNumber)
                     currentText = StandardizeBirthNumber(currentText);
 
                 currentText = ApplyReplaceMessages(currentText);
@@ -231,28 +246,29 @@ namespace Summarizer.Core
         private List<string> SummarizeTextContents(ICollection<string> texts)
         {
             List<string> summarizedTexts = new(texts.Count);
-            StringBuilder stringBuilder = new();
             foreach (var text in texts)
             {
-                stringBuilder.Clear();
-                stringBuilder.Append(text);
-
-                int index = Array.FindIndex(settings.FormMessages, formMessage => ContainsFormMessage(text, formMessage));
-                if (index >= 0)
-                    stringBuilder.Replace(settings.FormMessages[index], string.Empty);
-
-                summarizedTexts.Add(stringBuilder.ToString());
+                int index = Array.FindIndex(formMatchers, matcher => FormMatcherMatches(text, matcher));
+                summarizedTexts.Add(index >= 0 ? ApplyFormMatcher(text, formMatchers[index]) : text);
             }
-
             return summarizedTexts;
+        }
 
-            static bool ContainsFormMessage(string originalText, string formMessage)
-            {
-                if (string.Compare(originalText, formMessage, StringComparison.InvariantCultureIgnoreCase) == 0)
-                    return false;
+        private static bool FormMatcherMatches(string text, FormMatcher matcher)
+        {
+            if (string.Compare(text, matcher.PlainPattern, StringComparison.InvariantCultureIgnoreCase) == 0)
+                return false;
 
-                return originalText.Contains(formMessage);
-            }
+            return matcher.IsRegex
+                ? matcher.CompiledPattern!.IsMatch(text)
+                : text.Contains(matcher.PlainPattern);
+        }
+
+        private static string ApplyFormMatcher(string text, FormMatcher matcher)
+        {
+            return matcher.IsRegex
+                ? matcher.CompiledPattern!.Replace(text, string.Empty)
+                : text.Replace(matcher.PlainPattern, string.Empty);
         }
 
         private string ApplyReplaceMessages(string text)
