@@ -111,3 +111,17 @@
 - `formMessages` regex 항목 동작 확인
 - `파일 > 설정` → AppSettingsDialog 열림, 편집, 저장 확인
 - 기존 기능 정상 동작 확인
+
+---
+
+## 버그 수정
+
+### [완료] BugFix-1. `KakaoTalkMessageTimeRegex` — 대화 내 시간 표현 오매칭 수정
+
+- **증상**: 대화 내용에 "오전10:30에 오겠습니다" 같은 시간 표현이 줄 끝에 위치할 때, KakaoTalk 타임스탬프로 오인식하여 변환 결과가 의도치 않게 분리됨
+- **원인**: 기존 정규표현식 `오(전|후)\d{2}:\d{2}(\r?\n)`은 줄 내 위치와 무관하게 패턴을 매칭함
+- **수정**: `^` 앵커와 `RegexOptions.Multiline` 추가
+  - 변경 전: `오(전|후)\d{2}:\d{2}(\r?\n)`
+  - 변경 후: `^오(전|후)\d{2}:\d{2}(\r?\n)` (Multiline)
+  - KakaoTalk Business 타임스탬프는 항상 줄 맨 앞에 단독으로 위치하므로, 이 조건으로 충분히 구분됨
+- **수정 파일**: `Summarizer.Core/MessageConverter.cs`

@@ -16,7 +16,7 @@ namespace Summarizer.Core
         [GeneratedRegex(@"(\b\d?\d?\d{2})년?.*?([0-2]\d)월?.*?([0-3]\d일?)\b")]
         private static partial Regex BirthNumberRegex();
 
-        [GeneratedRegex(@"오(전|후)\d{2}:\d{2}(\r?\n)")]
+        [GeneratedRegex(@"^오(전|후)\d{2}:\d{2}(\r?\n)", RegexOptions.Multiline)]
         private static partial Regex KakaoTalkMessageTimeRegex();
 
         [GeneratedRegex(@"님이 보냄 보낸 메시지 가이드")]
