@@ -10,7 +10,7 @@ namespace Summarizer.App
 {
     public partial class App : Application
     {
-        internal const string Version = "1.2.3";
+        internal const string Version = "1.2.4";
 
         private string settingsPath = string.Empty;
         private AppSettings settings = new();

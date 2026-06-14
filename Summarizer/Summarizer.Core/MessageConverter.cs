@@ -1,6 +1,8 @@
 using System.Text;
 using System.Text.RegularExpressions;
 
+using Summarizer.Core.RecruitmentConverters;
+
 namespace Summarizer.Core
 {
     public partial class MessageConverter
@@ -8,6 +10,7 @@ namespace Summarizer.Core
         private readonly AppSettings settings;
         private readonly ReplaceMatcher[] replaceMatchers;
         private readonly FormMatcher[] formMatchers;
+        private readonly IRecruitmentMessageConverter[] recruitmentConverters;
 
 
         [GeneratedRegex(@"(?:\+?\b8?2[-\s.]*|\b)0?10[-\s.]*\d{4}[-\s.]*\d{4}\b")]
@@ -36,6 +39,7 @@ namespace Summarizer.Core
             this.settings = settings;
             replaceMatchers = [.. settings.ReplaceStaffMessages.Select(ParseReplaceMatcher)];
             formMatchers = [.. settings.FormMessages.Select(ParseFormMatcher)];
+            recruitmentConverters = [new GangnamUnniMessageConverter()];
         }
 
         private static ReplaceMatcher ParseReplaceMatcher(ReplaceMessage message)
@@ -112,8 +116,21 @@ namespace Summarizer.Core
             }
             else
             {
+                var firstLine = GetFirstLine(text);
+                foreach (var recruitmentConverter in recruitmentConverters)
+                {
+                    if (recruitmentConverter.CanConvert(firstLine))
+                        return recruitmentConverter.Convert(text);
+                }
+
                 return ConvertCustomerText(text);
             }
+        }
+
+        private static string GetFirstLine(string text)
+        {
+            var newlineIndex = text.IndexOfAny(['\r', '\n']);
+            return newlineIndex >= 0 ? text[..newlineIndex].Trim() : text.Trim();
         }
 
         private bool ConvertCategorizedText(string paragraph, bool isFirstMessage, out string convertCategorized)
