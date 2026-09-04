@@ -1,4 +1,4 @@
-## Summarizer v1.2.1 계획
+## Summarizer v1.2.2 계획
 
 ---
 
