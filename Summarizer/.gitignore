@@ -12,3 +12,6 @@ obj/
 
 # Claude Code 세션 백업 (임시)
 .claude/.edit-baks/
+
+# lscache
+*.lscache
