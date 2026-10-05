@@ -19,7 +19,7 @@ namespace Summarizer.Core
         [GeneratedRegex(@"(\b\d?\d?\d{2})년?.*?([0-2]\d)월?.*?([0-3]\d일?)\b")]
         private static partial Regex BirthNumberRegex();
 
-        [GeneratedRegex(@"^오(전|후)\d{2}:\d{2}(\r?\n)", RegexOptions.Multiline)]
+        [GeneratedRegex(@"^오(?<meridiem>전|후)(?<hour>\d{2}):(?<minute>\d{2})(\r?\n)", RegexOptions.Multiline)]
         private static partial Regex KakaoTalkMessageTimeRegex();
 
         [GeneratedRegex(@"님이 보냄 보낸 메시지 가이드")]
@@ -73,6 +73,7 @@ namespace Summarizer.Core
             if (matches.Count > 0)
             {
                 List<string> convertedTexts = new(matches.Count);
+                string? customerName = null;
                 for (int matchIndex = 0; matchIndex < matches.Count; ++matchIndex)
                 {
                     var match = matches[matchIndex];
@@ -89,6 +90,7 @@ namespace Summarizer.Core
 
                         if (ConvertCategorizedText(paragraph, true, out var convertedCategorized))
                         {
+                            customerName ??= ExtractCustomerName(paragraph, true);
                             var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                             if (splited.Length >= 2)
                                 convertedTexts.Add(convertedCategorized);
@@ -105,6 +107,7 @@ namespace Summarizer.Core
 
                         if (ConvertCategorizedText(paragraph, false, out var convertedCategorized))
                         {
+                            customerName ??= ExtractCustomerName(paragraph, false);
                             var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                             if (splited.Length >= 3)
                                 convertedTexts.Add(convertedCategorized);
@@ -112,7 +115,19 @@ namespace Summarizer.Core
                     }
                 }
 
-                return string.Join(" / ", convertedTexts);
+                if (convertedTexts.Count <= 0)
+                    return string.Empty;
+
+                List<string> headerTexts = [];
+                if (!string.IsNullOrEmpty(customerName))
+                    headerTexts.Add(customerName);
+
+                var firstTimeText = ConvertToTwentyFourHourText(matches[0]);
+                if (!string.IsNullOrEmpty(firstTimeText))
+                    headerTexts.Add(firstTimeText);
+
+                headerTexts.AddRange(convertedTexts);
+                return string.Join(" / ", headerTexts);
             }
             else
             {
@@ -131,6 +146,39 @@ namespace Summarizer.Core
         {
             var newlineIndex = text.IndexOfAny(['\r', '\n']);
             return newlineIndex >= 0 ? text[..newlineIndex].Trim() : text.Trim();
+        }
+
+        // 시간 표시 텍스트(예: 오후01:05)를 24시간제 {HH:mm}(예: 13:05)로 변환한다. 이미 KST 로컬 시간이므로 시간대 변환은 하지 않는다.
+        private static string ConvertToTwentyFourHourText(Match timeMatch)
+        {
+            if (!int.TryParse(timeMatch.Groups["hour"].Value, out var hour)
+                || !int.TryParse(timeMatch.Groups["minute"].Value, out var minute))
+                return string.Empty;
+
+            if ((hour < 1) || (hour > 12) || (minute > 59))
+                return string.Empty;
+
+            hour %= 12;
+            if (timeMatch.Groups["meridiem"].Value == "후")
+                hour += 12;
+
+            return $"{hour:D2}:{minute:D2}";
+        }
+
+        // 고객 문단에서 '프로필 사진' 줄 바로 다음 줄을 고객 이름으로 반환한다. 직원 문단이거나 이름 줄이 없으면 null.
+        private static string? ExtractCustomerName(string paragraph, bool isFirstMessage)
+        {
+            var splited = paragraph.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            int senderIndex = isFirstMessage ? 0 : 1;
+            if (splited.Length <= (senderIndex + 1))
+                return null;
+
+            var senderText = splited[senderIndex];
+            if (KakaoTalkStaffMessageRegex().IsMatch(senderText) || !senderText.Contains("프로필 사진"))
+                return null;
+
+            var name = splited[senderIndex + 1];
+            return string.IsNullOrEmpty(name) ? null : name;
         }
 
         private bool ConvertCategorizedText(string paragraph, bool isFirstMessage, out string convertCategorized)
