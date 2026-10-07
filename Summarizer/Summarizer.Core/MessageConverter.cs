@@ -118,16 +118,12 @@ namespace Summarizer.Core
                 if (convertedTexts.Count <= 0)
                     return string.Empty;
 
-                List<string> headerTexts = [];
-                if (!string.IsNullOrEmpty(customerName))
-                    headerTexts.Add(customerName);
-
+                // 형식 : {HH:mm} 채널({고객 이름}) - {기존의 변환 텍스트}
+                var channelText = string.IsNullOrEmpty(customerName) ? "채널" : $"채널({customerName})";
                 var firstTimeText = ConvertToTwentyFourHourText(matches[0]);
-                if (!string.IsNullOrEmpty(firstTimeText))
-                    headerTexts.Add(firstTimeText);
+                var headerText = string.IsNullOrEmpty(firstTimeText) ? channelText : $"{firstTimeText} {channelText}";
 
-                headerTexts.AddRange(convertedTexts);
-                return string.Join(" / ", headerTexts);
+                return $"{headerText} - {string.Join(" / ", convertedTexts)}";
             }
             else
             {

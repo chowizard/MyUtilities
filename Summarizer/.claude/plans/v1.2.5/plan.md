@@ -36,13 +36,16 @@
 | 대화 시간 | `matches[0]` (가장 먼저 등장한 시간 표시 텍스트) | 정렬 불필요. 이미 KST 로컬 시간이므로 시간대 변환 없음 |
 | 시간 형식 | 24시간제 `HH:mm` | `오전12:30` → `00:30`, `오후12:30` → `12:30`, `오후01:05` → `13:05` |
 
-### 출력 형식 (제안)
+### 출력 형식 (research.md 추가 요구사항 반영)
 
 ```
-{성함} / {HH:mm} / [ 기존 변환 결과 1 ] / 기존 변환 결과 2 / ...
+{HH:mm} 채널({고객 이름}) - {기존의 변환 텍스트}
 ```
 
-예) `홍길순 / 14:30 / [ 쌍꺼풀 / 010-1234-5678 ] / ...`
+예) `14:30 채널(홍길순) - [ 쌍꺼풀 / 010-1234-5678 ] / ...`
+
+- `[ ... ]`는 기존 변환 텍스트가 이미 포함하는 대괄호이므로 이중으로 감싸지 않는다.
+- 이름이 없으면 `채널`, 시간이 없으면 시간 생략.
 
 ---
 
@@ -127,19 +130,12 @@ private static string? ExtractCustomerName(string[] splitedLines)
 - 최종 반환 직전에 머리말을 조립한다.
 
 ```csharp
-var headerParts = new List<string>();
-if (!string.IsNullOrEmpty(customerName))
-    headerParts.Add(customerName);
-if (!string.IsNullOrEmpty(firstTimeText))
-    headerParts.Add(firstTimeText);
-
-var body = string.Join(" / ", convertedTexts);
-return headerParts.Count > 0
-    ? string.Join(" / ", [.. headerParts, body])
-    : body;
+var channelText = string.IsNullOrEmpty(customerName) ? "채널" : $"채널({customerName})";
+var headerText = string.IsNullOrEmpty(firstTimeText) ? channelText : $"{firstTimeText} {channelText}";
+return $"{headerText} - {string.Join(" / ", convertedTexts)}";
 ```
 
-- `convertedTexts`가 비어 있는 경우에는 머리말도 붙이지 않고 기존처럼 빈 문자열을 반환한다.
+- `convertedTexts`가 비어 있는 경우에는 머리말 없이 기존처럼 빈 문자열을 반환한다.
 - 모객 메시지(`GangnamUnniMessageConverter`) 및 일반 고객 텍스트 경로(`else` 분기)는 **변경하지 않는다.**
 
 ### [완료] 2-5. 호출부 영향 확인
@@ -223,12 +219,11 @@ return headerParts.Count > 0
    → `AppSettingsLoader`는 파일이 없을 때만 기본값을 쓰므로, 이미 설정 파일이 있는 PC에서는 새 기본값이 적용되지 않는다.
    → 기본 방향: **이번 버전에서는 마이그레이션을 구현하지 않는다.** 배포 대상 PC에서는 설정 파일을 삭제하거나 설정창에서 직접 수정하도록 안내한다. 자동 마이그레이션이 필요하면 별도로 지시해 달라.
 
-2. **머리말 출력 형식**
-   → research.md는 "성함과 대화 시간을 맨 앞에"라고만 명시했고 구분 형식은 정해져 있지 않다.
-   → 기본 방향: `{성함} / {HH:mm} / ` 형식으로, 기존 구분자 `/`와 동일하게 처리한다. 다른 형식(예: `[홍길순 14:30]`)을 원하면 알려 달라.
+2. **머리말 출력 형식** (research.md 추가 요구사항으로 확정)
+   → `{HH:mm} 채널({고객 이름}) - {기존의 변환 텍스트}`
 
 3. **성함 또는 시간을 얻지 못한 경우**
-   → 기본 방향: 얻은 항목만 붙이고, 둘 다 없으면 머리말 없이 기존 결과를 출력한다.
+   → 이름이 없으면 `채널`, 시간이 없으면 시간 생략. 변환 결과가 없으면 머리말 없이 빈 문자열.
 
 4. **`formMessages` 정규식의 허용 범위**
    → 위 표의 패턴은 research.md에 예시된 3건(`첫수술 or 재수술…`, `상담 받을…`, `소개자 있으실 경우,…`)과 그 유사한 띄어쓰기 오류까지 허용한다. 그 외 항목의 허용 범위(예: `생년 월일`)는 판단하여 추가했으므로, 과하다고 판단되면 알려 달라.
