@@ -13,7 +13,7 @@
 - 프로퍼티: `CustomerName`, `PhoneNumber`, `ReservationItem`, `PreferredDateTime`, `ChangePreferredDateTime` (모두 `string[]`)
 - 기본값에 기존/변경 후 레이블 모두 포함
 
-### [신규] 1-2. `AppSettings.cs` 수정
+### [완료] 1-2. `AppSettings.cs` 수정
 
 - `AppSettings` 클래스에 `GangnamUnniFieldLabels GangnamUnniFieldLabels` 프로퍼티 추가
 

@@ -23,6 +23,8 @@ namespace Summarizer.Core
 
         public ReplaceMessage[] ReplaceStaffMessages { get; set; } = [];
 
+        public GangnamUnniFieldLabels GangnamUnniFieldLabels { get; set; } = new();
+
         public string Theme { get; set; } = "System";
     }
 }
