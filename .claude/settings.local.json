@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build Summarizer.Core/Summarizer.Core.csproj)",
+      "Bash(git add Summarizer.Core/GangnamUnniFieldLabels.cs .claude/plans/v1.2.6/task.md)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

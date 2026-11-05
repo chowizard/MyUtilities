@@ -1,4 +1,4 @@
-# Summarizer v1.2.6 — 작업 결과 (Task)
+# Summarizer v1.3.0 — 작업 결과 (Task)
 
 > plan.md 승인 완료 기준으로 작성된 세부 과업 목록이다.
 > 각 과업이 완료되면 해당 과업에 대한 커밋을 수행한다.
@@ -45,7 +45,7 @@
 
 ## Story 3 — 버전 업데이트 및 빌드 검증
 
-### [완료] 3-1. 버전 v1.2.6으로 업데이트
+### [완료] 3-1. 버전 v1.3.0으로 업데이트
 
 - `App.xaml.cs`, `MainWindow.xaml`, `Summarizer.App.csproj`, `Summarizer.Core.csproj`
 
