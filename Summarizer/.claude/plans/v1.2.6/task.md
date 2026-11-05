@@ -17,7 +17,7 @@
 
 - `AppSettings` 클래스에 `GangnamUnniFieldLabels GangnamUnniFieldLabels` 프로퍼티 추가
 
-### [신규] 1-3. `AppSettings.json` 기본값 추가
+### [완료] 1-3. `AppSettings.json` 기본값 추가
 
 - `gangnamUnniFieldLabels` 항목 추가 (`AppSettings.cs` 기본값과 동일)
 
