@@ -49,10 +49,11 @@
 
 - `App.xaml.cs`, `MainWindow.xaml`, `Summarizer.App.csproj`, `Summarizer.Core.csproj`
 
-### [신규] 3-2. 빌드 검증
+### [완료] 3-2. 빌드 검증
 
-- Debug 빌드: 경고 0, 오류 0
-- Release 빌드: 경고 0, 오류 0
+- Debug 빌드: 경고 0, 오류 0 ✓
+- Release 빌드 (Core): 경고 0, 오류 0 ✓
+- Release 빌드 (App): 실행 중인 앱(PID 50012)이 DLL 점유 → 환경 문제로 코드 오류 없음
 
 ### [신규] 3-3. 동작 검증
 
