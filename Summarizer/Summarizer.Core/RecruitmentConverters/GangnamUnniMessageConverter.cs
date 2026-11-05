@@ -18,6 +18,12 @@ namespace Summarizer.Core.RecruitmentConverters
         [GeneratedRegex(@"^\d+\.\s+(.+)$")]
         private static partial Regex DateLineRegex();
 
+        private readonly GangnamUnniFieldLabels fieldLabels;
+
+        public GangnamUnniMessageConverter(GangnamUnniFieldLabels fieldLabels)
+        {
+            this.fieldLabels = fieldLabels;
+        }
 
         public bool CanConvert(string firstLine)
             => firstLine == NewReservationFirstLine
@@ -40,12 +46,12 @@ namespace Summarizer.Core.RecruitmentConverters
         }
 
 
-        private static string ConvertNewReservation(string[] lines)
+        private string ConvertNewReservation(string[] lines)
         {
-            var name        = ExtractFieldValue(lines, "고객명") ?? string.Empty;
-            var phone       = ExtractFieldValue(lines, "연락처") ?? string.Empty;
-            var (doctor, treatments) = ParseReservationItem(ExtractFieldValue(lines, "예약 항목"));
-            var dateLines   = ExtractDateLines(lines, "희망 일시");
+            var name        = ExtractFieldValue(lines, fieldLabels.CustomerName) ?? string.Empty;
+            var phone       = ExtractFieldValue(lines, fieldLabels.PhoneNumber)  ?? string.Empty;
+            var (doctor, treatments) = ParseReservationItem(ExtractFieldValue(lines, fieldLabels.ReservationItem));
+            var dateLines   = ExtractDateLines(lines, fieldLabels.PreferredDateTime);
 
             var firstLine = BuildFirstLine(name, phone, BuildReservationItemField(doctor, treatments));
             var secondLine = JoinDateLines(dateLines);
@@ -55,11 +61,11 @@ namespace Summarizer.Core.RecruitmentConverters
                 : $"{firstLine}\n{secondLine}";
         }
 
-        private static string ConvertChangeReservation(string[] lines)
+        private string ConvertChangeReservation(string[] lines)
         {
-            var name      = ExtractFieldValue(lines, "고객명") ?? string.Empty;
-            var phone     = ExtractFieldValue(lines, "연락처") ?? string.Empty;
-            var dateLines = ExtractDateLines(lines, "변경 희망 일시");
+            var name      = ExtractFieldValue(lines, fieldLabels.CustomerName) ?? string.Empty;
+            var phone     = ExtractFieldValue(lines, fieldLabels.PhoneNumber)  ?? string.Empty;
+            var dateLines = ExtractDateLines(lines, fieldLabels.ChangePreferredDateTime);
 
             var firstLine  = BuildFirstLine(name, phone, ChangeLabel);
             var secondLine = JoinDateLines(dateLines);
@@ -69,10 +75,10 @@ namespace Summarizer.Core.RecruitmentConverters
                 : $"{firstLine}\n{secondLine}";
         }
 
-        private static string ConvertCancelReservation(string[] lines)
+        private string ConvertCancelReservation(string[] lines)
         {
-            var name  = ExtractFieldValue(lines, "고객명") ?? string.Empty;
-            var phone = ExtractFieldValue(lines, "연락처") ?? string.Empty;
+            var name  = ExtractFieldValue(lines, fieldLabels.CustomerName) ?? string.Empty;
+            var phone = ExtractFieldValue(lines, fieldLabels.PhoneNumber)  ?? string.Empty;
 
             return BuildFirstLine(name, phone, CancelLabel);
         }
@@ -110,13 +116,16 @@ namespace Summarizer.Core.RecruitmentConverters
             return null;
         }
 
-        private static string? ExtractFieldValue(string[] lines, string fieldLabel)
+        private static string? ExtractFieldValue(string[] lines, string[] fieldLabels)
         {
-            var prefix = $"[{fieldLabel}] : ";
-            foreach (var line in lines)
+            foreach (var fieldLabel in fieldLabels)
             {
-                if (line.StartsWith(prefix, StringComparison.Ordinal))
-                    return line[prefix.Length..].Trim();
+                var prefix = $"[{fieldLabel}] : ";
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith(prefix, StringComparison.Ordinal))
+                        return line[prefix.Length..].Trim();
+                }
             }
             return null;
         }
@@ -141,26 +150,33 @@ namespace Summarizer.Core.RecruitmentConverters
             return (doctor, treatments);
         }
 
-        private static List<string> ExtractDateLines(string[] lines, string fieldLabel)
+        private static List<string> ExtractDateLines(string[] lines, string[] fieldLabels)
         {
-            var prefix = $"[{fieldLabel}] :";
             var result = new List<string>();
-            bool collecting = false;
 
-            foreach (var line in lines)
+            foreach (var fieldLabel in fieldLabels)
             {
-                if (!collecting)
+                var prefix = $"[{fieldLabel}] :";
+                bool collecting = false;
+
+                foreach (var line in lines)
                 {
-                    if (line.StartsWith(prefix, StringComparison.Ordinal))
-                        collecting = true;
-                    continue;
+                    if (!collecting)
+                    {
+                        if (line.StartsWith(prefix, StringComparison.Ordinal))
+                            collecting = true;
+                        continue;
+                    }
+
+                    var match = DateLineRegex().Match(line);
+                    if (!match.Success)
+                        break;
+
+                    result.Add(match.Groups[1].Value.Trim());
                 }
 
-                var match = DateLineRegex().Match(line);
-                if (!match.Success)
+                if (result.Count > 0)
                     break;
-
-                result.Add(match.Groups[1].Value.Trim());
             }
 
             return result;

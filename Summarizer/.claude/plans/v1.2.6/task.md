@@ -25,20 +25,21 @@
 
 ## Story 2 — `GangnamUnniMessageConverter` 수정
 
-### [신규] 2-1. 생성자에 `GangnamUnniFieldLabels` 주입
+### [완료] 2-1. 생성자에 `GangnamUnniFieldLabels` 주입
 
 - `private readonly GangnamUnniFieldLabels fieldLabels` 필드 추가
 - 생성자를 `public GangnamUnniMessageConverter(GangnamUnniFieldLabels fieldLabels)`로 변경
 
-### [신규] 2-2. `ExtractFieldValue()` 및 `ExtractDateLines()` 다중 레이블 지원
+### [완료] 2-2. `ExtractFieldValue()` 및 `ExtractDateLines()` 다중 레이블 지원
 
 - `string fieldLabel` → `string[] fieldLabels` 파라미터로 변경
 - 각 레이블에 대해 순차 탐색
 - 호출부를 `fieldLabels.CustomerName`, `fieldLabels.PhoneNumber` 등으로 변경
 
-### [신규] 2-3. `MessageConverter.cs` 수정
+### [완료] 2-3. `MessageConverter.cs` 수정
 
 - `new GangnamUnniMessageConverter()` → `new GangnamUnniMessageConverter(settings.GangnamUnniFieldLabels)`
+- **비고**: 2-1~2-3은 원자적 변경이므로 한 커밋으로 묶음
 
 ---
 

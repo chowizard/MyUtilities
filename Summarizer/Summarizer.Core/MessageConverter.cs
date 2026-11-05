@@ -39,7 +39,7 @@ namespace Summarizer.Core
             this.settings = settings;
             replaceMatchers = [.. settings.ReplaceStaffMessages.Select(ParseReplaceMatcher)];
             formMatchers = [.. settings.FormMessages.Select(ParseFormMatcher)];
-            recruitmentConverters = [new GangnamUnniMessageConverter()];
+            recruitmentConverters = [new GangnamUnniMessageConverter(settings.GangnamUnniFieldLabels)];
         }
 
         private static ReplaceMatcher ParseReplaceMatcher(ReplaceMessage message)
