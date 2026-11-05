@@ -45,7 +45,7 @@
 
 ## Story 3 — 버전 업데이트 및 빌드 검증
 
-### [신규] 3-1. 버전 v1.2.6으로 업데이트
+### [완료] 3-1. 버전 v1.2.6으로 업데이트
 
 - `App.xaml.cs`, `MainWindow.xaml`, `Summarizer.App.csproj`, `Summarizer.Core.csproj`
 
