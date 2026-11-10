@@ -67,6 +67,26 @@
 
 ---
 
+## Story 4 — 설정 GUI에서 `gangnamUnniFieldLabels` 편집 지원
+
+### [완료] 4-1. 레이블 편집용 뷰모델 추가 및 저장/불러오기 연동
+
+- `FieldLabelItemViewModel`, `FieldLabelGroupViewModel` 신규 생성 (선택/추가/삭제/위로/아래로/모두선택 커맨드는 기존 목록 편집 방식과 동일)
+- `AppSettingsDialogViewModel`에 5개 그룹 프로퍼티 추가, `LoadFromSettings()`/`SaveToSettings()` 연동
+- 저장 시 빈 텍스트 제외, 앞뒤 공백 제거
+
+### [완료] 4-2. 설정 GUI에 편집 영역 추가
+
+- `AppSettingsDialog.xaml`에 "강남언니 메시지 필드 레이블" 영역 추가 (공용 `DataTemplate`으로 5개 그룹 표시)
+- 일반 텍스트 접두어 일치 방식이므로 정규표현식 체크박스는 없음
+
+### [완료] 4-3. 빌드 검증
+
+- Debug / Release 빌드: 경고 0, 오류 0 ✓
+- GUI 실행 확인은 수행하지 않음 (사용자 확인 필요)
+
+---
+
 ## 결정 사항 이행 현황
 
 1. 기존 `AppSettings.json` 마이그레이션 → 구현하지 않음. 기존 JSON에 키가 없으면 기본값 사용

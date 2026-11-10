@@ -45,6 +45,12 @@ namespace Summarizer.App.ViewModels
 
         public ObservableCollection<ReplaceStaffMessageItemViewModel> ReplaceStaffMessages { get; } = [];
 
+        public FieldLabelGroupViewModel CustomerNameLabels { get; private set; } = null!;
+        public FieldLabelGroupViewModel PhoneNumberLabels { get; private set; } = null!;
+        public FieldLabelGroupViewModel ReservationItemLabels { get; private set; } = null!;
+        public FieldLabelGroupViewModel PreferredDateTimeLabels { get; private set; } = null!;
+        public FieldLabelGroupViewModel ChangePreferredDateTimeLabels { get; private set; } = null!;
+
 
         public ICommand AddFormMessageCommand { get; }
         public ICommand DeleteFormMessagesCommand { get; }
@@ -210,6 +216,13 @@ namespace Summarizer.App.ViewModels
                 SubscribeItem(item);
                 ReplaceStaffMessages.Add(item);
             }
+
+            var fieldLabels = settings.GangnamUnniFieldLabels;
+            CustomerNameLabels = new FieldLabelGroupViewModel("고객 이름", fieldLabels.CustomerName);
+            PhoneNumberLabels = new FieldLabelGroupViewModel("연락처", fieldLabels.PhoneNumber);
+            ReservationItemLabels = new FieldLabelGroupViewModel("예약 항목", fieldLabels.ReservationItem);
+            PreferredDateTimeLabels = new FieldLabelGroupViewModel("희망 일시", fieldLabels.PreferredDateTime);
+            ChangePreferredDateTimeLabels = new FieldLabelGroupViewModel("변경 희망 일시", fieldLabels.ChangePreferredDateTime);
         }
 
         private void SaveToSettings()
@@ -231,6 +244,15 @@ namespace Summarizer.App.ViewModels
                     Pattern = item.IsPatternRegex ? regexPrefix + item.Pattern : item.Pattern,
                     Replacement = item.HasReplacement ? item.Replacement : string.Empty
                 })];
+
+            settings.GangnamUnniFieldLabels = new GangnamUnniFieldLabels
+            {
+                CustomerName = CustomerNameLabels.ToArray(),
+                PhoneNumber = PhoneNumberLabels.ToArray(),
+                ReservationItem = ReservationItemLabels.ToArray(),
+                PreferredDateTime = PreferredDateTimeLabels.ToArray(),
+                ChangePreferredDateTime = ChangePreferredDateTimeLabels.ToArray()
+            };
 
             AppSettingsLoader.Save(settingsFilePath, settings);
         }

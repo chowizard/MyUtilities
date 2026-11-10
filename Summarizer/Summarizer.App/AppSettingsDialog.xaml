@@ -9,6 +9,41 @@
         ResizeMode="CanResizeWithGrip"
         WindowStartupLocation="CenterOwner">
 
+    <Window.Resources>
+        <!-- 강남언니 필드 레이블 그룹 하나(제목 + 편집 버튼 + 레이블 목록) -->
+        <DataTemplate x:Key="FieldLabelGroupTemplate">
+            <StackPanel Margin="0,0,0,10">
+                <Label Content="{Binding Title}" Padding="0,0,0,4" />
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                    <Button Content="추가"     Command="{Binding AddCommand}"       Padding="8,3" Margin="0,0,4,0" />
+                    <Button Content="삭제"     Command="{Binding DeleteCommand}"    Padding="8,3" Margin="0,0,4,0" />
+                    <Button Content="위로"     Command="{Binding MoveUpCommand}"    Padding="8,3" Margin="0,0,4,0" />
+                    <Button Content="아래로"   Command="{Binding MoveDownCommand}"  Padding="8,3" Margin="0,0,4,0" />
+                    <Button Content="모두선택" Command="{Binding SelectAllCommand}" Padding="8,3" />
+                </StackPanel>
+                <ItemsControl ItemsSource="{Binding Labels}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="1"
+                                    Margin="0,0,0,2"
+                                    Padding="6,4">
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox IsChecked="{Binding IsSelected}"
+                                              VerticalAlignment="Center"
+                                              Margin="0,0,8,0" />
+                                    <TextBox Text="{Binding Text, UpdateSourceTrigger=LostFocus}"
+                                             Width="440"
+                                             VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+        </DataTemplate>
+    </Window.Resources>
+
     <DockPanel Background="{DynamicResource AppBackground}">
 
         <!-- 상단: JSON 파일로 열기 -->
@@ -84,6 +119,22 @@
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>
                 </ItemsControl>
+
+                <Separator Margin="0,0,0,12" />
+
+                <!-- 강남언니 필드 레이블 (gangnamUnniFieldLabels) -->
+                <Label Content="강남언니 메시지 필드 레이블" FontWeight="Bold" Padding="0,0,0,6" />
+                <ContentControl Content="{Binding CustomerNameLabels}"
+                                ContentTemplate="{StaticResource FieldLabelGroupTemplate}" />
+                <ContentControl Content="{Binding PhoneNumberLabels}"
+                                ContentTemplate="{StaticResource FieldLabelGroupTemplate}" />
+                <ContentControl Content="{Binding ReservationItemLabels}"
+                                ContentTemplate="{StaticResource FieldLabelGroupTemplate}" />
+                <ContentControl Content="{Binding PreferredDateTimeLabels}"
+                                ContentTemplate="{StaticResource FieldLabelGroupTemplate}" />
+                <ContentControl Content="{Binding ChangePreferredDateTimeLabels}"
+                                ContentTemplate="{StaticResource FieldLabelGroupTemplate}"
+                                Margin="0,0,0,2" />
 
                 <Separator Margin="0,0,0,12" />
 

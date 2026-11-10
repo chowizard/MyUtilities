@@ -205,16 +205,42 @@ recruitmentConverters = [new GangnamUnniMessageConverter(settings.GangnamUnniFie
 
 ---
 
+## Story 4 — 설정 GUI에서 `gangnamUnniFieldLabels` 편집 지원
+
+기존 설정 GUI(`AppSettingsDialog`)의 목록 편집 방식(체크박스 선택 + 추가/삭제/위로/아래로/모두선택 버튼, 창 닫을 때 자동 저장)과 동일한 방식으로 동작한다.
+
+### [완료] 4-1. 레이블 편집용 뷰모델 추가 및 저장/불러오기 연동
+
+- `FieldLabelItemViewModel` (`IsSelected`, `Text`), `FieldLabelGroupViewModel` (제목, 레이블 목록, 편집 커맨드 5종) 신규 생성
+- `AppSettingsDialogViewModel`: 5개 그룹(`CustomerNameLabels` 등) 노출, `LoadFromSettings()`/`SaveToSettings()`에서 `GangnamUnniFieldLabels`와 연동
+- 저장 시 빈 텍스트는 제외하고 앞뒤 공백을 제거한다.
+
+### [완료] 4-2. 설정 GUI에 편집 영역 추가
+
+- `AppSettingsDialog.xaml`: "상담 메시지 형식"과 "직원 메시지 변환" 사이에 "강남언니 메시지 필드 레이블" 영역 추가
+- 그룹별 `DataTemplate`을 공용으로 사용 (고객 이름 / 연락처 / 예약 항목 / 희망 일시 / 변경 희망 일시)
+- 레이블은 `[레이블] : ` 접두어 일치(일반 텍스트) 방식이므로 정규표현식 체크박스는 제공하지 않는다.
+
+### [완료] 4-3. 빌드 검증
+
+- Debug / Release 빌드: 경고 0, 오류 0
+
+---
+
 ## 파일 변경 목록
 
 ### 신규 생성
 - `Summarizer.Core/GangnamUnniFieldLabels.cs`
+- `Summarizer.App/ViewModels/FieldLabelItemViewModel.cs` (Story 4)
+- `Summarizer.App/ViewModels/FieldLabelGroupViewModel.cs` (Story 4)
 
 ### 수정
 - `Summarizer.Core/AppSettings.cs` — `GangnamUnniFieldLabels` 프로퍼티 추가
 - `Summarizer.App/AppSettings.json` — `gangnamUnniFieldLabels` 기본값 추가
 - `Summarizer.Core/RecruitmentConverters/GangnamUnniMessageConverter.cs` — 생성자 주입, 다중 레이블 지원
 - `Summarizer.Core/MessageConverter.cs` — `GangnamUnniMessageConverter` 생성자 호출 수정
+- `Summarizer.App/ViewModels/AppSettingsDialogViewModel.cs` — 필드 레이블 그룹 연동 (Story 4)
+- `Summarizer.App/AppSettingsDialog.xaml` — 필드 레이블 편집 영역 추가 (Story 4)
 - `Summarizer.App/App.xaml.cs` — Version
 - `Summarizer.App/MainWindow.xaml` — Title
 - `Summarizer.App/Summarizer.App.csproj` — 버전
